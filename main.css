@@ -1,0 +1,67 @@
+* { margin: 0; }
+html, body {height: 100%;}
+body {
+    font-family: sans-serif;
+    font-size: 16px;
+}
+h1 {
+    font-size: 20px;
+}
+h2 {
+    font-size: 18px;
+}
+h3 {
+    font-size: 16px;
+}
+h4 {
+    font-size: 14px;
+}
+#header {
+    margin: 10px;
+}
+@media (max-width: 604px) {
+    #main {
+        margin-left: 1%;
+        margin-right: 1%;
+    }
+    #sidebar {
+        margin-left: 1%;
+        margin-right: 1%;
+        margin-top: 4%;
+        margin-bottom: 4%;
+    }
+}
+@media (min-width: 605px) {
+    #main {
+        float: left;
+        margin-left: 1%;
+        margin-right: 5%;
+        width: 64%;
+        margin-bottom: 50px;
+    }
+    #sidebar {
+        margin-right: 1%;
+        margin-left: 69%;
+    }
+    #skiptomenu {
+        visibility: hidden;
+    }
+}
+
+.heart {
+    font-size: 20px;
+}
+
+.pulse {
+    color: red;
+    animation: pulse 1s linear;
+}
+
+@keyframes "pulse" {
+    50% {
+        transform: scale (1.1);
+    }
+    100% {
+        transform: scale (1.3);
+    }
+}

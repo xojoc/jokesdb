@@ -1,0 +1,14 @@
+{{template "header.html"}}
+
+<div id="main">
+
+<p>Grazie per aver inviato la barzelletta :).</p>
+
+{{if gt .JokeID 0 }}
+<p>Una volta pubblicata la tua barzelletta sarà disponibile all'indirizzo: <a href="{{.AbsUrl}}">{{.AbsUrl}}</a></p>
+{{end}}
+
+</div>
+
+{{template "sidebar.html"}}
+{{template "footer.html"}}
