@@ -397,5 +397,5 @@ func main() {
 	http.HandleFunc("/like", likeHandler)
 	http.HandleFunc("/submit", submitHandler)
 	http.HandleFunc("/", rootHandler)
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(p, nil)
 }
