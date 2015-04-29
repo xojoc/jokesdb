@@ -387,6 +387,10 @@ func submitHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	p := ":8080"
+	if len(os.Args) > 1 {
+		p = os.Args[1]
+	}
 	log.SetFlags(log.Lshortfile)
 	http.HandleFunc("/barzelletta/", barzellettaHandler)
 	http.HandleFunc("/barzellette/", barzelletteHandler)
