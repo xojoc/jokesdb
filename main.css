@@ -63,6 +63,10 @@ p {
     padding-bottom: 10px;
 }
 
+.barzelletta p {
+    font-size: 25px;
+}
+
 .heart {
     font-size: 30px;
 }
