@@ -35,6 +35,9 @@ p {
         margin-top: 4%;
         margin-bottom: 4%;
     }
+    .heart {
+        font-size: 40px;
+    }
 }
 @media (min-width: 605px) {
     #logo {
