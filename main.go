@@ -20,8 +20,9 @@ var templates = htpl.Must(htpl.New("").Funcs(htpl.FuncMap{"AllCategories": AllCa
 
 const (
 	PageTitle = "Barzedette: barzellette, freddure e colmi"
-	//	Domain    = "http://barzedette.pw"
-	Domain = ""
+	Domain    = "http://barzedette.pw"
+
+//	Domain = ""
 )
 
 type Joke struct {
