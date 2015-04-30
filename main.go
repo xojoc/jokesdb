@@ -468,6 +468,18 @@ func adminHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
+		p, err := strconv.ParseUint(r.PostForm.Get("proposed"), 10, 64)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		_, err = DB.Exec(`DELETE FROM proposed_jokes WHERE rowid=?;`, p)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
 	} else {
 		http.Error(w, "can't handle verb", http.StatusInternalServerError)
 		return
