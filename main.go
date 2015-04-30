@@ -131,7 +131,7 @@ func AllCategories() []*Category {
 }
 
 func ProposedJokes() []*Joke {
-	rows, err := DB.Query(`select Joke from proposed_jokes;`)
+	rows, err := DB.Query(`select rowid, Joke from proposed_jokes;`)
 	if err != nil {
 		return nil
 	}
@@ -139,7 +139,7 @@ func ProposedJokes() []*Joke {
 	var jokes []*Joke
 	for rows.Next() {
 		var j Joke
-		err := rows.Scan(&j.Joke)
+		err := rows.Scan(&j.JokeID, &j.Joke)
 		if err != nil {
 			return nil
 		}
