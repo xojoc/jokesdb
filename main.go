@@ -21,7 +21,7 @@ import (
 var templates = htpl.Must(htpl.New("").Funcs(htpl.FuncMap{"AllCategories": AllCategories, "ProposedJokes": ProposedJokes}).ParseGlob("*.html"))
 
 const (
-	PageTitle    = "Barzedette: barzellette, freddure e colmi"
+	PageTitle    = "Barzedette: barzellette"
 	Domain       = "http://barzedette.pw"
 	Sha512passwd = "4c516647bf061fa36a28fbb09d54e08f0d17b915b3edc5b07b5dc550ba5f8b447143f2660e3b9d77a20479e6a3f2de5e9fa64113ea44024eb9bc9f08d217b413"
 )
@@ -312,7 +312,7 @@ func likeHandler(w http.ResponseWriter, r *http.Request) {
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "" || r.URL.Path == "/" || r.URL.Path == "/index.html" {
-		rows, err := DB.Query(`select JokeID,Joke,Reply,Likes from Jokes limit 20;`)
+		rows, err := DB.Query(`select JokeID,Joke,Reply,Likes from Jokes order by date limit 20;`)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				http.NotFound(w, r)
