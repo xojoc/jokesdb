@@ -312,7 +312,7 @@ func likeHandler(w http.ResponseWriter, r *http.Request) {
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "" || r.URL.Path == "/" || r.URL.Path == "/index.html" {
-		rows, err := DB.Query(`select JokeID,Joke,Reply,Likes from Jokes`)
+		rows, err := DB.Query(`select JokeID,Joke,Reply,Likes from Jokes limit 20;`)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				http.NotFound(w, r)
