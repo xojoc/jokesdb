@@ -68,6 +68,7 @@ p {
 
 .barzelletta p {
     font-size: 25px;
+    white-space: pre-line;
 }
 
 .heart {
