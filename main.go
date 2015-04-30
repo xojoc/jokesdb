@@ -318,8 +318,13 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 
 		err = templates.ExecuteTemplate(w, "index.html", jokes)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			if os.IsNotExist(err) {
+				http.NotFound(w, r)
+				return
+			} else {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
 		}
 
 		return
