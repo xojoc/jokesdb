@@ -498,5 +498,8 @@ func main() {
 	http.HandleFunc("/submit", submitHandler)
 	http.HandleFunc("/admin", adminHandler)
 	http.HandleFunc("/", rootHandler)
-	http.ListenAndServe(p, nil)
+	err := http.ListenAndServe(p, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
