@@ -439,11 +439,7 @@ func adminHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	} else if r.Method == "POST" {
 		r.ParseForm()
-		c, err := strconv.ParseUint(r.PostForm.Get("categoria"), 10, 64)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		var c uint64
 
 		if new := r.PostForm.Get("nuova-categoria"); new != "" {
 			res, err := DB.Exec(`INSERT INTO Categories(Name, Slug) Values(?,?);`, new, r.PostForm.Get("slug"))
@@ -459,6 +455,12 @@ func adminHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			c = uint64(c64)
 
+		} else {
+			c, err = strconv.ParseUint(r.PostForm.Get("categoria"), 10, 64)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
 		}
 
 		_, err = DB.Exec(`INSERT INTO Jokes(Joke,Reply,Likes,Date,CategoryID) VALUES(?,?,?,?,?);`, r.PostForm.Get("barzelletta"), r.PostForm.Get("risposta"), 0, time.Now(), c)
