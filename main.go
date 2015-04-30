@@ -2,7 +2,9 @@
 package main
 
 import (
+	"crypto/sha512"
 	"database/sql"
+	"fmt"
 	"github.com/twinj/uuid"
 	htpl "html/template"
 	"io"
@@ -16,18 +18,16 @@ import (
 	"time"
 )
 
-var templates = htpl.Must(htpl.New("").Funcs(htpl.FuncMap{"AllCategories": AllCategories}).ParseGlob("*.html"))
+var templates = htpl.Must(htpl.New("").Funcs(htpl.FuncMap{"AllCategories": AllCategories, "ProposedJokes": ProposedJokes}).ParseGlob("*.html"))
 
 const (
-	PageTitle = "Barzedette: barzellette, freddure e colmi"
-	Domain    = "http://barzedette.pw"
-
-//	Domain = ""
+	PageTitle    = "Barzedette: barzellette, freddure e colmi"
+	Domain       = "http://barzedette.pw"
+	Sha512passwd = "4c516647bf061fa36a28fbb09d54e08f0d17b915b3edc5b07b5dc550ba5f8b447143f2660e3b9d77a20479e6a3f2de5e9fa64113ea44024eb9bc9f08d217b413"
 )
 
 type Joke struct {
 	JokeID     uint64
-	Approved   bool
 	Joke       string
 	Reply      string
 	Likes      uint64
@@ -130,6 +130,29 @@ func AllCategories() []*Category {
 	return categories
 }
 
+func ProposedJokes() []*Joke {
+	rows, err := DB.Query(`select Joke from proposed_jokes;`)
+	if err != nil {
+		return nil
+	}
+	defer rows.Close()
+	var jokes []*Joke
+	for rows.Next() {
+		var j Joke
+		err := rows.Scan(&j.Joke)
+		if err != nil {
+			return nil
+		}
+		jokes = append(jokes, &j)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil
+	}
+
+	return jokes
+}
+
 func barzellettaHandler(w http.ResponseWriter, r *http.Request) {
 	bidstr := r.URL.Path[len("/barzelletta/"):]
 	if bidstr == "" {
@@ -191,7 +214,7 @@ func barzelletteHandler(w http.ResponseWriter, r *http.Request) {
 	default:
 		o = "Likes desc;"
 	}
-	rows, err := DB.Query(`select JokeID,Joke,Reply,Likes from Jokes where approved=? and CategoryID=? order by `+o, true, c.CategoryID)
+	rows, err := DB.Query(`select JokeID,Joke,Reply,Likes from Jokes where CategoryID=? order by `+o, c.CategoryID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			http.NotFound(w, r)
@@ -289,7 +312,7 @@ func likeHandler(w http.ResponseWriter, r *http.Request) {
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "" || r.URL.Path == "/" || r.URL.Path == "/index.html" {
-		rows, err := DB.Query(`select JokeID,Joke,Reply,Likes from Jokes where approved=?`, true)
+		rows, err := DB.Query(`select JokeID,Joke,Reply,Likes from Jokes`)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				http.NotFound(w, r)
@@ -361,31 +384,88 @@ func submitHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	} else if r.Method == "POST" {
 		r.ParseForm()
+		_, err := DB.Exec(`INSERT INTO proposed_jokes VALUES(?);`, r.PostForm.Get("barzelletta"))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		err = templates.ExecuteTemplate(w, "submit-success.html", nil)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+	} else {
+		log.Print("can't handle verb")
+		http.Error(w, "can't handle verb", http.StatusInternalServerError)
+		return
+	}
+}
+
+func adminHandler(w http.ResponseWriter, r *http.Request) {
+	var passwd string
+	c, err := r.Cookie("password")
+	if err != nil {
+		if r.Method == "GET" {
+			err = templates.ExecuteTemplate(w, "passwd.html", nil)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			return
+		} else if r.Method == "POST" {
+			r.ParseForm()
+			passwd = fmt.Sprintf("%x", sha512.Sum512([]byte(r.PostForm.Get("password"))))
+			http.SetCookie(w, &http.Cookie{Name: "password", Value: passwd, Expires: time.Now().Add(60 * 24 * time.Hour)})
+			return
+		} else {
+			http.Error(w, "can't handle verb", http.StatusInternalServerError)
+			return
+		}
+	} else {
+		passwd = c.Value
+	}
+
+	if passwd != Sha512passwd {
+		http.SetCookie(w, &http.Cookie{Name: "password", MaxAge: -1})
+		return
+	}
+
+	if r.Method == "GET" {
+		err := templates.ExecuteTemplate(w, "admin.html", nil)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	} else if r.Method == "POST" {
+		r.ParseForm()
 		c, err := strconv.ParseUint(r.PostForm.Get("categoria"), 10, 64)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		res, err := DB.Exec(`INSERT INTO Jokes(Approved,Joke,Reply,Likes,Date,CategoryID,ProposedCategory) VALUES(?,?,?,?,?,?,?);`, false, r.PostForm.Get("barzelletta"), r.PostForm.Get("risposta"), 0, time.Now(), c, r.PostForm.Get("nuova-categoria"))
+		if new := r.PostForm.Get("nuova-categoria"); new != "" {
+			res, err := DB.Exec(`INSERT INTO Categories(Name, Slug) Values(?,?);`, new, r.PostForm.Get("slug"))
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			c64, err := res.LastInsertId()
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			c = uint64(c64)
+
+		}
+
+		_, err = DB.Exec(`INSERT INTO Jokes(Joke,Reply,Likes,Date,CategoryID) VALUES(?,?,?,?,?);`, r.PostForm.Get("barzelletta"), r.PostForm.Get("risposta"), 0, time.Now(), c)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-
-		j := &Joke{}
-		id, err := res.LastInsertId()
-		j.JokeID = uint64(id)
-		if err != nil {
-			log.Print(err)
-			j = nil
-		}
-		err = templates.ExecuteTemplate(w, "submit-success.html", j)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
 	} else {
 		http.Error(w, "can't handle verb", http.StatusInternalServerError)
 		return
@@ -402,6 +482,7 @@ func main() {
 	http.HandleFunc("/barzellette/", barzelletteHandler)
 	http.HandleFunc("/like", likeHandler)
 	http.HandleFunc("/submit", submitHandler)
+	http.HandleFunc("/admin", adminHandler)
 	http.HandleFunc("/", rootHandler)
 	http.ListenAndServe(p, nil)
 }

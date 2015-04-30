@@ -1,5 +1,7 @@
 <div id="sidebar">
+  <ul>
   {{range AllCategories}}
-  <a href="{{.AbsUrl}}" title="{{.Name}}">{{.Name}}</a>
+  <li><a href="{{.AbsUrl}}" title="{{.Name}}">{{.Name}}</a></li>
   {{end}}
+</ul>
 </div>

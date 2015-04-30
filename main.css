@@ -16,9 +16,14 @@ h3 {
 h4 {
     font-size: 14px;
 }
+p {
+    padding-bottom: 10px;
+}
 #header {
     margin: 10px;
+    padding-bottom: 30px;
 }
+
 @media (max-width: 604px) {
     #main {
         margin-left: 1%;
@@ -32,6 +37,12 @@ h4 {
     }
 }
 @media (min-width: 605px) {
+    #logo {
+        float: left;
+    }
+    #share {
+        float: right;
+    }
     #main {
         float: left;
         margin-left: 1%;
@@ -46,6 +57,10 @@ h4 {
     #skiptomenu {
         visibility: hidden;
     }
+}
+
+.barzelletta {
+    padding-bottom: 10px;
 }
 
 .heart {

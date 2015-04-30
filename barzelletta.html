@@ -3,16 +3,7 @@
     <a href="{{.AbsUrl}}" title="{{.Title}}">Link</a>
 
     <span id="{{.JokeID}}" class="heart {{if .Liked}}pulse{{end}}" onClick="like(this);">♥</span>
-    
-    {{with .TweetButton}}
-   <a class="twitter-share-button" href="https://twitter.com/share?text={{.Text}}{{with .Url}}&url={{.}}{{end}}{{with .Via}}&via={{.}}{{end}}{{with .Related}}&related={{.}}{{end}}&lang=it{{with .Count}}&count={{.}}{{end}}">
-Tweet
-   </a>
-   {{end}}
-
-   <div class="fb-like" data-href="{{.AbsUrl}}" data-layout="button_count"></div>
-   <div class="g-plusone" data-href="{{.AbsUrl}}" data-annotation="bubble" data-size="small"></div>
-   
+ 
   </div>
   <p>{{.Joke}}</p>
 </div>
