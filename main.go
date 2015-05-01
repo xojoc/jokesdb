@@ -520,7 +520,7 @@ func adminHandler(w http.ResponseWriter, r *http.Request) *NetError {
 		if err != nil {
 			return &NetError{500, err.Error()}
 		}
-
+		http.Redirect(w, r, PathAdmin, http.StatusSeeOther)
 	} else {
 		return &NetError{500, "can't handle verb"}
 	}
