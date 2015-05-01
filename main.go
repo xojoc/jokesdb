@@ -230,7 +230,7 @@ func jokeHandler(w http.ResponseWriter, r *http.Request) *NetError {
 	}
 
 	b := &Joke{}
-	err = DB.QueryRow(`select Joke, Reply, Likes, Date from Jokes where JokeID=?;`, bid).Scan(&b.Joke, &b.Reply, &b.Likes, &b.Date)
+	err = DB.QueryRow(`select Joke, Reply, Likes, Date, CategoryID from Jokes where JokeID=?;`, bid).Scan(&b.Joke, &b.Reply, &b.Likes, &b.Date, &b.CategoryID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return &NetError{404, err.Error()}
