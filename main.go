@@ -18,13 +18,27 @@ import (
 	"time"
 )
 
-var templates = htpl.Must(htpl.New("").Funcs(htpl.FuncMap{"AllCategories": AllCategories, "ProposedJokes": ProposedJokes}).ParseGlob("*.html"))
+func init() {
+	log.SetFlags(log.Lshortfile)
+	f, err := os.OpenFile("log.txt", os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
+	if err != nil {
+		log.Print(err)
+	} else {
+		log.SetOutput(f)
+	}
+}
 
 const (
 	PageTitle    = "Barzedette: barzellette"
 	Domain       = "http://barzedette.pw"
 	Sha512passwd = "4c516647bf061fa36a28fbb09d54e08f0d17b915b3edc5b07b5dc550ba5f8b447143f2660e3b9d77a20479e6a3f2de5e9fa64113ea44024eb9bc9f08d217b413"
+	PathJoke     = "/barzelletta/"
+	PathCategory = "/barzellette/"
+	PathSubmit   = "/invia"
+	PathAdmin    = "/admin"
 )
+
+var templates = htpl.Must(htpl.New("").Funcs(htpl.FuncMap{"AllCategories": AllCategories, "ProposedJokes": ProposedJokes}).ParseGlob("*.html"))
 
 type Joke struct {
 	JokeID     uint64
@@ -45,12 +59,20 @@ type Category struct {
 	Jokes []*Joke
 }
 
+/*
+
 type TweetButton struct {
 	Text    string
 	Via     string
 	Related string
 	Url     string
 	Count   string
+}
+*/
+
+type NetError struct {
+	Code    int
+	Message string
 }
 
 func min(a int, b int) int {
@@ -61,11 +83,13 @@ func min(a int, b int) int {
 }
 
 func (j *Joke) AbsUrl() string {
-	return Domain + "/barzelletta/" + strconv.FormatUint(j.JokeID, 10)
+	return Domain + PathJoke + strconv.FormatUint(j.JokeID, 10)
 }
 func (j *Joke) Title() string {
 	return PageTitle + " | " + j.Joke[:min(10, len(j.Joke))] + "..."
 }
+
+/*
 func (j *Joke) TweetButton() *TweetButton {
 	t := &TweetButton{}
 	t.Via = "barzedette"
@@ -81,6 +105,7 @@ func (j *Joke) TweetButton() *TweetButton {
 	t.Url = j.AbsUrl()
 	return t
 }
+*/
 func (j *Joke) WasLiked(r *http.Request) {
 	c, err := r.Cookie("uuid")
 	if err != nil {
@@ -104,13 +129,13 @@ func (j *Joke) WasLiked(r *http.Request) {
 }
 
 func (c *Category) AbsUrl() string {
-	return Domain + "/barzellette/" + c.Slug
+	return Domain + PathCategory + c.Slug
 }
 
-func AllCategories() []*Category {
+func AllCategories() ([]*Category, error) {
 	rows, err := DB.Query(`select CategoryID, Name, Slug from Categories order by Name`)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	defer rows.Close()
 	var categories []*Category
@@ -118,22 +143,22 @@ func AllCategories() []*Category {
 		var c Category
 		err := rows.Scan(&c.CategoryID, &c.Name, &c.Slug)
 		if err != nil {
-			return nil
+			return nil, err
 		}
 		categories = append(categories, &c)
 	}
 	err = rows.Err()
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
-	return categories
+	return categories, nil
 }
 
-func ProposedJokes() []*Joke {
+func ProposedJokes() ([]*Joke, error) {
 	rows, err := DB.Query(`select rowid, Joke from proposed_jokes;`)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	defer rows.Close()
 	var jokes []*Joke
@@ -141,67 +166,89 @@ func ProposedJokes() []*Joke {
 		var j Joke
 		err := rows.Scan(&j.JokeID, &j.Joke)
 		if err != nil {
-			return nil
+			return nil, err
 		}
 		jokes = append(jokes, &j)
 	}
 	err = rows.Err()
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
-	return jokes
+	return jokes, nil
 }
 
-func barzellettaHandler(w http.ResponseWriter, r *http.Request) {
-	bidstr := r.URL.Path[len("/barzelletta/"):]
+type myHandler func(http.ResponseWriter, *http.Request) *NetError
+
+func errorHandler(h myHandler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		nerr := h(w, r)
+		if nerr != nil {
+			if nerr.Code == 404 {
+				log.Printf("Path %q not found: %s", r.URL.Path, nerr.Message)
+				w.WriteHeader(404)
+				err := templates.ExecuteTemplate(w, "404.html", nil)
+				if err != nil {
+					http.NotFound(w, r)
+				}
+			} else {
+				log.Printf("Path %q error: %s", r.URL.Path, nerr.Message)
+				w.WriteHeader(500)
+				err := templates.ExecuteTemplate(w, "500.html", nerr.Message)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+				}
+			}
+		}
+	}
+}
+
+func jokeHandler(w http.ResponseWriter, r *http.Request) *NetError {
+	bidstr := r.URL.Path[len(PathJoke):]
 	if bidstr == "" {
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
-		return
+		return nil
 	}
 	bid, err := strconv.ParseUint(bidstr, 10, 64)
 	if err != nil {
-		http.NotFound(w, r)
-		return
+		return &NetError{400, err.Error()}
 	}
 
 	b := &Joke{}
 	err = DB.QueryRow(`select Joke, Reply, Likes, Date from Jokes where JokeID=?;`, bid).Scan(&b.Joke, &b.Reply, &b.Likes, &b.Date)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			http.NotFound(w, r)
+			return &NetError{400, err.Error()}
 		} else {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return &NetError{500, err.Error()}
 		}
-
-		return
 	}
 	b.JokeID = bid
 	b.WasLiked(r)
 
 	err = templates.ExecuteTemplate(w, "barzelletta-page.html", b)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return &NetError{500, err.Error()}
 	}
+
+	return nil
 }
 
-func barzelletteHandler(w http.ResponseWriter, r *http.Request) {
-	slug := r.URL.Path[len("/barzellette/"):]
+func categoryHandler(w http.ResponseWriter, r *http.Request) *NetError {
+	slug := r.URL.Path[len(PathCategory):]
 	if slug == "" {
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
-		return
+		return nil
 	}
 
 	c := &Category{}
 	err := DB.QueryRow(`select CategoryID, Name from Categories where Slug=?`, slug).Scan(&c.CategoryID, &c.Name)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			http.NotFound(w, r)
+			return &NetError{400, err.Error()}
 		} else {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return &NetError{500, err.Error()}
 		}
-
-		return
 	}
 	c.Slug = slug
 
@@ -217,12 +264,10 @@ func barzelletteHandler(w http.ResponseWriter, r *http.Request) {
 	rows, err := DB.Query(`select JokeID,Joke,Reply,Likes from Jokes where CategoryID=? order by `+o, c.CategoryID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			http.NotFound(w, r)
+			return &NetError{400, err.Error()}
 		} else {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return &NetError{500, err.Error()}
 		}
-
-		return
 	}
 	defer rows.Close()
 	var jokes []*Joke
@@ -230,38 +275,35 @@ func barzelletteHandler(w http.ResponseWriter, r *http.Request) {
 		var j Joke
 		err := rows.Scan(&j.JokeID, &j.Joke, &j.Reply, &j.Likes)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			return &NetError{500, err.Error()}
 		}
 		j.WasLiked(r)
 		jokes = append(jokes, &j)
 	}
 	err = rows.Err()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return &NetError{500, err.Error()}
 	}
 
 	c.Jokes = jokes
 	err = templates.ExecuteTemplate(w, "categoria.html", c)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return &NetError{500, err.Error()}
 	}
+
+	return nil
 }
 
 var countBeforePurge = 0
 
-func likeHandler(w http.ResponseWriter, r *http.Request) {
+func likeHandler(w http.ResponseWriter, r *http.Request) *NetError {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return &NetError{500, err.Error()}
 	}
 	bid, err := strconv.ParseUint(string(body), 10, 64)
 	if err != nil {
-		http.NotFound(w, r)
-		return
+		return &NetError{500, err.Error()}
 	}
 
 	var u uuid.UUID
@@ -272,20 +314,18 @@ func likeHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		u, err = uuid.ParseUUID(c.Value)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			return &NetError{500, err.Error()}
 		}
 
 		placeholder := 0
 		err = DB.QueryRow(`SELECT JokeID FROM Liked WHERE UUID=? and JokeID=?;`, u.Bytes(), bid).Scan(&placeholder)
 		if err == nil {
 			/* already liked. Actually shouldn't happen. */
-			return
+			return nil
 		}
 		/* error */
 		if err != sql.ErrNoRows {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			return &NetError{500, err.Error()}
 		}
 	}
 
@@ -300,27 +340,25 @@ func likeHandler(w http.ResponseWriter, r *http.Request) {
 
 	_, err = DB.Exec(`UPDATE Jokes SET likes=likes+1 WHERE JokeID=?;`, bid)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return &NetError{500, err.Error()}
 	}
 	_, err = DB.Exec(`INSERT INTO Liked(Uuid, JokeID, date) VALUES(?,?,?);`, u.Bytes(), bid, time.Now().Unix())
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return &NetError{500, err.Error()}
 	}
+
+	return nil
 }
 
-func rootHandler(w http.ResponseWriter, r *http.Request) {
+func rootHandler(w http.ResponseWriter, r *http.Request) *NetError {
 	if r.URL.Path == "" || r.URL.Path == "/" || r.URL.Path == "/index.html" {
 		rows, err := DB.Query(`select JokeID,Joke,Reply,Likes from Jokes order by date desc limit 20;`)
 		if err != nil {
 			if err == sql.ErrNoRows {
-				http.NotFound(w, r)
+				return &NetError{404, err.Error()}
 			} else {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return &NetError{500, err.Error()}
 			}
-
-			return
 		}
 		defer rows.Close()
 		var jokes []*Joke
@@ -328,99 +366,84 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 			var j Joke
 			err := rows.Scan(&j.JokeID, &j.Joke, &j.Reply, &j.Likes)
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
+				return &NetError{500, err.Error()}
 			}
 			j.WasLiked(r)
 			jokes = append(jokes, &j)
 		}
 		err = rows.Err()
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			return &NetError{500, err.Error()}
 		}
 
 		err = templates.ExecuteTemplate(w, "index.html", jokes)
 		if err != nil {
-			if os.IsNotExist(err) {
-				http.NotFound(w, r)
-				return
-			} else {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
+			return &NetError{500, err.Error()}
 		}
-
-		return
+		return nil
 	}
 
 	p := r.URL.Path[len("/"):]
-
 	w.Header().Set("Content-Type", mime.TypeByExtension(path.Ext(p)))
 
 	if path.Ext(p) == ".html" {
 		err := templates.ExecuteTemplate(w, p, nil)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			return &NetError{500, err.Error()}
 		}
 	} else {
 		f, err := os.Open(p)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			return &NetError{404, err.Error()}
 		}
 
 		io.Copy(w, f)
 	}
+
+	return nil
 }
 
-func submitHandler(w http.ResponseWriter, r *http.Request) {
+func submitHandler(w http.ResponseWriter, r *http.Request) *NetError {
 	if r.Method == "GET" {
 		err := templates.ExecuteTemplate(w, "submit.html", nil)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			return &NetError{500, err.Error()}
 		}
 	} else if r.Method == "POST" {
 		r.ParseForm()
 		_, err := DB.Exec(`INSERT INTO proposed_jokes VALUES(?);`, r.PostForm.Get("barzelletta"))
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			return &NetError{500, err.Error()}
 		}
 		err = templates.ExecuteTemplate(w, "submit-success.html", nil)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			return &NetError{500, err.Error()}
 		}
 
 	} else {
-		log.Print("can't handle verb")
-		http.Error(w, "can't handle verb", http.StatusInternalServerError)
-		return
+		return &NetError{500, "can't handle verb"}
 	}
+
+	return nil
 }
 
-func adminHandler(w http.ResponseWriter, r *http.Request) {
+func adminHandler(w http.ResponseWriter, r *http.Request) *NetError {
 	var passwd string
 	c, err := r.Cookie("password")
 	if err != nil {
 		if r.Method == "GET" {
 			err = templates.ExecuteTemplate(w, "passwd.html", nil)
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
+				return &NetError{500, err.Error()}
 			}
-			return
+			return nil
 		} else if r.Method == "POST" {
 			r.ParseForm()
 			passwd = fmt.Sprintf("%x", sha512.Sum512([]byte(r.PostForm.Get("password"))))
 			http.SetCookie(w, &http.Cookie{Name: "password", Value: passwd, Expires: time.Now().Add(60 * 24 * time.Hour)})
-			return
+			return nil
 		} else {
-			http.Error(w, "can't handle verb", http.StatusInternalServerError)
-			return
+			return &NetError{500, "can't handle verb"}
 		}
 	} else {
 		passwd = c.Value
@@ -428,14 +451,13 @@ func adminHandler(w http.ResponseWriter, r *http.Request) {
 
 	if passwd != Sha512passwd {
 		http.SetCookie(w, &http.Cookie{Name: "password", MaxAge: -1})
-		return
+		return nil
 	}
 
 	if r.Method == "GET" {
 		err := templates.ExecuteTemplate(w, "admin.html", nil)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			return &NetError{500, err.Error()}
 		}
 	} else if r.Method == "POST" {
 		r.ParseForm()
@@ -444,46 +466,41 @@ func adminHandler(w http.ResponseWriter, r *http.Request) {
 		if new := r.PostForm.Get("nuova-categoria"); new != "" {
 			res, err := DB.Exec(`INSERT INTO Categories(Name, Slug) Values(?,?);`, new, r.PostForm.Get("slug"))
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
+				return &NetError{500, err.Error()}
 			}
 
 			c64, err := res.LastInsertId()
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
+				return &NetError{500, err.Error()}
 			}
 			c = uint64(c64)
 
 		} else {
 			c, err = strconv.ParseUint(r.PostForm.Get("categoria"), 10, 64)
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
+				return &NetError{500, err.Error()}
 			}
 		}
 
 		_, err = DB.Exec(`INSERT INTO Jokes(Joke,Reply,Likes,Date,CategoryID) VALUES(?,?,?,?,?);`, r.PostForm.Get("barzelletta"), r.PostForm.Get("risposta"), 0, time.Now(), c)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			return &NetError{500, err.Error()}
 		}
 
 		p, err := strconv.ParseUint(r.PostForm.Get("proposed"), 10, 64)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			return &NetError{500, err.Error()}
 		}
 		_, err = DB.Exec(`DELETE FROM proposed_jokes WHERE rowid=?;`, p)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			return &NetError{500, err.Error()}
 		}
 
 	} else {
-		http.Error(w, "can't handle verb", http.StatusInternalServerError)
-		return
+		return &NetError{500, "can't handle verb"}
 	}
+
+	return nil
 }
 
 func main() {
@@ -491,13 +508,12 @@ func main() {
 	if len(os.Args) > 1 {
 		p = os.Args[1]
 	}
-	log.SetFlags(log.Lshortfile)
-	http.HandleFunc("/barzelletta/", barzellettaHandler)
-	http.HandleFunc("/barzellette/", barzelletteHandler)
-	http.HandleFunc("/like", likeHandler)
-	http.HandleFunc("/submit", submitHandler)
-	http.HandleFunc("/admin", adminHandler)
-	http.HandleFunc("/", rootHandler)
+	http.HandleFunc(PathJoke, errorHandler(jokeHandler))
+	http.HandleFunc(PathCategory, errorHandler(categoryHandler))
+	http.HandleFunc("/like", errorHandler(likeHandler))
+	http.HandleFunc(PathSubmit, errorHandler(submitHandler))
+	http.HandleFunc(PathAdmin, errorHandler(adminHandler))
+	http.HandleFunc("/", errorHandler(rootHandler))
 	err := http.ListenAndServe(p, nil)
 	if err != nil {
 		log.Fatal(err)

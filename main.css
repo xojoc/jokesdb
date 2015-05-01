@@ -23,6 +23,10 @@ p {
     margin: 10px;
     padding-bottom: 35px;
 }
+#invia {
+    color: green;
+    a:visited: green;
+}
 
 @media (max-width: 604px) {
     #main {
@@ -42,6 +46,10 @@ p {
 @media (min-width: 605px) {
     #logo {
         float: left;
+    }
+    #invia {
+        float: right;
+        padding-left: 15px;
     }
     #share {
         float: right;
