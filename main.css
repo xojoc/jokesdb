@@ -21,7 +21,6 @@ p {
 }
 #header {
     margin: 10px;
-    padding-bottom: 35px;
 }
 #invia {
     color: green;
@@ -29,6 +28,12 @@ p {
 }
 
 @media (max-width: 604px) {
+    #skiptomenu {
+        margin: 1%;
+    }
+    #share {
+        padding-top: 4%;
+    }
     #main {
         margin-left: 1%;
         margin-right: 1%;
@@ -44,6 +49,9 @@ p {
     }
 }
 @media (min-width: 605px) {
+    #header {
+        padding-bottom: 35px;
+    }
     #logo {
         float: left;
     }
