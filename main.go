@@ -226,14 +226,14 @@ func jokeHandler(w http.ResponseWriter, r *http.Request) *NetError {
 	}
 	bid, err := strconv.ParseUint(bidstr, 10, 64)
 	if err != nil {
-		return &NetError{400, err.Error()}
+		return &NetError{404, err.Error()}
 	}
 
 	b := &Joke{}
 	err = DB.QueryRow(`select Joke, Reply, Likes, Date from Jokes where JokeID=?;`, bid).Scan(&b.Joke, &b.Reply, &b.Likes, &b.Date)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return &NetError{400, err.Error()}
+			return &NetError{404, err.Error()}
 		} else {
 			return &NetError{500, err.Error()}
 		}
@@ -265,7 +265,7 @@ func categoryHandler(w http.ResponseWriter, r *http.Request) *NetError {
 	err := DB.QueryRow(`select CategoryID, Name from Categories where Slug=?`, slug).Scan(&c.CategoryID, &c.Name)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return &NetError{400, err.Error()}
+			return &NetError{404, err.Error()}
 		} else {
 			return &NetError{500, err.Error()}
 		}
@@ -284,7 +284,7 @@ func categoryHandler(w http.ResponseWriter, r *http.Request) *NetError {
 	rows, err := DB.Query(`select JokeID,Joke,Reply,Likes from Jokes where CategoryID=? order by `+o, c.CategoryID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return &NetError{400, err.Error()}
+			return &NetError{404, err.Error()}
 		} else {
 			return &NetError{500, err.Error()}
 		}
