@@ -3,7 +3,9 @@
     <a href="{{.AbsUrl}}" title="{{.Title}}">Link</a>
 
     <span id="{{.JokeID}}" class="heart {{if .Liked}}pulse{{end}}" onClick="like(this);">♥</span>
- 
+
+    <a href="{{.Category.AbsUrl}}" title="{{.Category.Name}}">{{.Category.Name}}</a>
+
   </div>
   <p>{{.Joke}}</p>
 </div>

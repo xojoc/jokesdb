@@ -38,7 +38,7 @@ const (
 	PathAdmin    = "/admin"
 )
 
-var templates = htpl.Must(htpl.New("").Funcs(htpl.FuncMap{"AllCategories": AllCategories, "ProposedJokes": ProposedJokes}).ParseGlob("*.html"))
+var templates = htpl.Must(htpl.New("").Funcs(htpl.FuncMap{"AllCategories": AllCategories, "ProposedJokes": ProposedJokes, "DefaultTitle": DefaultTitle}).ParseGlob("*.html"))
 
 type Joke struct {
 	JokeID     uint64
@@ -48,7 +48,8 @@ type Joke struct {
 	Date       time.Time
 	CategoryID uint64
 
-	Liked bool
+	Liked    bool
+	Category *Category
 }
 
 type Category struct {
@@ -75,6 +76,10 @@ type NetError struct {
 	Message string
 }
 
+func DefaultTitle() string {
+	return "BarzeDette :) - Barzellette"
+}
+
 func min(a int, b int) int {
 	if a < b {
 		return a
@@ -86,7 +91,7 @@ func (j *Joke) AbsUrl() string {
 	return Domain + PathJoke + strconv.FormatUint(j.JokeID, 10)
 }
 func (j *Joke) Title() string {
-	return PageTitle + " | " + j.Joke[:min(10, len(j.Joke))] + "..."
+	return "BarzeDette | Barzelletta: " + j.Joke[:min(15, len(j.Joke))] + "..."
 }
 
 /*
@@ -178,6 +183,16 @@ func ProposedJokes() ([]*Joke, error) {
 	return jokes, nil
 }
 
+func getCategoryByID(id uint64) (*Category, error) {
+	c := &Category{}
+	err := DB.QueryRow(`select Name, Slug from Categories where CategoryID=?`, id).Scan(&c.Name, &c.Slug)
+	if err != nil {
+		return nil, err
+	}
+	c.CategoryID = id
+	return c, nil
+}
+
 type myHandler func(http.ResponseWriter, *http.Request) *NetError
 
 func errorHandler(h myHandler) http.HandlerFunc {
@@ -225,6 +240,11 @@ func jokeHandler(w http.ResponseWriter, r *http.Request) *NetError {
 	}
 	b.JokeID = bid
 	b.WasLiked(r)
+
+	b.Category, err = getCategoryByID(b.CategoryID)
+	if err != nil {
+		return &NetError{500, err.Error()}
+	}
 
 	err = templates.ExecuteTemplate(w, "barzelletta-page.html", b)
 	if err != nil {
@@ -278,6 +298,7 @@ func categoryHandler(w http.ResponseWriter, r *http.Request) *NetError {
 			return &NetError{500, err.Error()}
 		}
 		j.WasLiked(r)
+		j.Category = c
 		jokes = append(jokes, &j)
 	}
 	err = rows.Err()
@@ -352,7 +373,7 @@ func likeHandler(w http.ResponseWriter, r *http.Request) *NetError {
 
 func rootHandler(w http.ResponseWriter, r *http.Request) *NetError {
 	if r.URL.Path == "" || r.URL.Path == "/" || r.URL.Path == "/index.html" {
-		rows, err := DB.Query(`select JokeID,Joke,Reply,Likes from Jokes order by date desc limit 20;`)
+		rows, err := DB.Query(`select JokeID,Joke,Reply,Likes,CategoryID from Jokes order by date desc limit 20;`)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				return &NetError{404, err.Error()}
@@ -364,11 +385,15 @@ func rootHandler(w http.ResponseWriter, r *http.Request) *NetError {
 		var jokes []*Joke
 		for rows.Next() {
 			var j Joke
-			err := rows.Scan(&j.JokeID, &j.Joke, &j.Reply, &j.Likes)
+			err := rows.Scan(&j.JokeID, &j.Joke, &j.Reply, &j.Likes, &j.CategoryID)
 			if err != nil {
 				return &NetError{500, err.Error()}
 			}
 			j.WasLiked(r)
+			j.Category, err = getCategoryByID(j.CategoryID)
+			if err != nil {
+				return &NetError{500, err.Error()}
+			}
 			jokes = append(jokes, &j)
 		}
 		err = rows.Err()

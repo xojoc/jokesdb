@@ -2,7 +2,12 @@
 <html>
   <head>
     <meta charset=utf-8>
-    <title>BarzeDette :) Barzellette, freddure e colmi</title>
+{{/*    <title>BarzeDette :) Barzellette, freddure e colmi</title> */}}
+    {{if .}}
+    <title>{{.Title}}</title>
+    {{else}}
+    <title>{{DefaultTitle}}</title>
+    {{end}}
     <meta name=viewport content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="/main.css" type="text/css">
     <link rel="shortcut icon" href="/favicon.ico" />
