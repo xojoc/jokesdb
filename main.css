@@ -27,8 +27,10 @@ p {
     font-size: 25px;
 }
 #invia {
+    padding-top: 10px;
+}
+#invia a {
     color: green;
-    a:visited: green;
 }
 
 .nav {
