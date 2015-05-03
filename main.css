@@ -36,6 +36,8 @@ p {
 
 #sidebar a {
     color: blue;
+    font-size: 18px;
+    font-weight: 100;
 }
 
 @media (max-width: 604px) {
@@ -94,7 +96,8 @@ p {
 }
 
 .barzelletta p {
-    font-size: 25px;
+    font-size: 18px;
+    font-weight: 100;
     white-space: pre-line;
 }
 

@@ -372,7 +372,10 @@ func likeHandler(w http.ResponseWriter, r *http.Request) *NetError {
 }
 
 func rootHandler(w http.ResponseWriter, r *http.Request) *NetError {
-	if r.URL.Path == "" || r.URL.Path == "/" || r.URL.Path == "/index.html" {
+	if r.URL.Path == "" || r.URL.Path == "/" {
+		http.Redirect(w, r, "/index.html", http.StatusMovedPermanently)
+		return nil
+	} else if r.URL.Path == "/index.html" {
 		rows, err := DB.Query(`select JokeID,Joke,Reply,Likes,CategoryID from Jokes order by date desc limit 20;`)
 		if err != nil {
 			if err == sql.ErrNoRows {
@@ -466,6 +469,7 @@ func adminHandler(w http.ResponseWriter, r *http.Request) *NetError {
 			r.ParseForm()
 			passwd = fmt.Sprintf("%x", sha512.Sum512([]byte(r.PostForm.Get("password"))))
 			http.SetCookie(w, &http.Cookie{Name: "password", Value: passwd, Expires: time.Now().Add(60 * 24 * time.Hour)})
+			http.Redirect(w, r, PathAdmin, http.StatusSeeOther)
 			return nil
 		} else {
 			return &NetError{500, "can't handle verb"}
