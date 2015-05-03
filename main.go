@@ -92,7 +92,7 @@ func (j *Joke) AbsUrl() string {
 	return Domain + PathJoke + strconv.FormatUint(j.JokeID, 10)
 }
 func (j *Joke) Title() string {
-	return "BarzeDette | Barzelletta: " + j.Joke[:min(15, len(j.Joke))] + "..."
+	return "BarzeDette :) | Barzelletta: " + j.Joke[:min(15, len(j.Joke))] + "..."
 }
 
 /*
@@ -136,6 +136,9 @@ func (j *Joke) WasLiked(r *http.Request) {
 
 func (c *Category) AbsUrl() string {
 	return Domain + PathCategory + c.Slug
+}
+func (c *Category) Title() string {
+	return "BarzeDette :) | " + c.Name
 }
 
 func AllCategories() ([]*Category, error) {
