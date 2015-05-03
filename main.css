@@ -19,6 +19,9 @@ h4 {
 p {
     padding-bottom: 10px;
 }
+img {
+    max-width: 100%;
+}
 #header {
     margin: 10px;
 }
@@ -93,12 +96,13 @@ p {
         float: left;
         margin-left: 1%;
         margin-right: 5%;
-        width: 64%;
+        width: 56%;
         margin-bottom: 50px;
     }
     #sidebar {
+        float: right;
         margin-right: 1%;
-        margin-left: 69%;
+/*        margin-left: 69%; */
     }
     #skiptomenu {
         visibility: hidden;
