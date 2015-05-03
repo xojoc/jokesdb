@@ -64,6 +64,9 @@ img {
     #share {
         padding-top: 4%;
     }
+    #ads {
+        padding-top: 10px;
+    }
     #main {
         margin-left: 1%;
         margin-right: 1%;
@@ -74,6 +77,7 @@ img {
         margin-top: 4%;
         margin-bottom: 4%;
     }
+    
     .heart {
         font-size: 40px !important;
     }
