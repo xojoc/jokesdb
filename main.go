@@ -409,26 +409,24 @@ func rootHandler(w http.ResponseWriter, r *http.Request) *NetError {
 			return &NetError{500, err.Error()}
 		}
 		return nil
-	}
-
-	p := r.URL.Path[len("/"):]
-	w.Header().Set("Content-Type", mime.TypeByExtension(path.Ext(p)))
-
-	if path.Ext(p) == ".html" {
-		err := templates.ExecuteTemplate(w, p, nil)
-		if err != nil {
-			return &NetError{500, err.Error()}
-		}
 	} else {
-		f, err := os.Open(p)
-		if err != nil {
-			return &NetError{404, err.Error()}
+		p := r.URL.Path[len("/"):]
+
+		if path.Ext(p) == ".html" {
+			err := templates.ExecuteTemplate(w, p, nil)
+			if err != nil {
+				return &NetError{500, err.Error()}
+			}
+		} else {
+			f, err := os.Open(p)
+			if err != nil {
+				return &NetError{404, err.Error()}
+			}
+			w.Header().Set("Content-Type", mime.TypeByExtension(path.Ext(p)))
+			io.Copy(w, f)
+			return nil
 		}
-
-		io.Copy(w, f)
 	}
-
-	return nil
 }
 
 func submitHandler(w http.ResponseWriter, r *http.Request) *NetError {
