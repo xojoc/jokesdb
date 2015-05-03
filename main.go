@@ -57,7 +57,8 @@ type Category struct {
 	Name       string
 	Slug       string
 
-	Jokes []*Joke
+	Jokes   []*Joke
+	OrderBy string
 }
 
 /*
@@ -276,10 +277,13 @@ func categoryHandler(w http.ResponseWriter, r *http.Request) *NetError {
 	switch r.URL.Query().Get("orderby") {
 	case "newer":
 		o = "Date desc;"
+		c.OrderBy = "newer"
 	case "older":
 		o = "Date asc;"
+		c.OrderBy = "older"
 	default:
 		o = "Likes desc;"
+		c.OrderBy = "likes"
 	}
 	rows, err := DB.Query(`select JokeID,Joke,Reply,Likes from Jokes where CategoryID=? order by `+o, c.CategoryID)
 	if err != nil {

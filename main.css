@@ -43,6 +43,11 @@ p {
     font-weight: 100;
 }
 
+#order a {
+    color: purple;
+    font-weight: 700;
+}
+
 @media (max-width: 604px) {
     #skiptomenu {
         margin: 1%;
