@@ -427,6 +427,8 @@ func rootHandler(w http.ResponseWriter, r *http.Request) *NetError {
 			return nil
 		}
 	}
+
+	return nil
 }
 
 func submitHandler(w http.ResponseWriter, r *http.Request) *NetError {
