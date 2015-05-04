@@ -38,7 +38,7 @@ const (
 	PathAdmin    = "/admin"
 )
 
-var templates = htpl.Must(htpl.New("").Funcs(htpl.FuncMap{"AllCategories": AllCategories, "ProposedJokes": ProposedJokes, "DefaultTitle": DefaultTitle}).ParseGlob("*.html"))
+var templates = htpl.Must(htpl.New("").Funcs(htpl.FuncMap{"AllCategories": AllCategories, "AllJokes": AllJokes, "ProposedJokes": ProposedJokes, "DefaultTitle": DefaultTitle}).ParseGlob("*.html"))
 
 type Joke struct {
 	JokeID     uint64
@@ -162,6 +162,29 @@ func AllCategories() ([]*Category, error) {
 	}
 
 	return categories, nil
+}
+
+func AllJokes() ([]*Joke, error) {
+	rows, err := DB.Query(`select JokeID, Joke, Likes, Date, CategoryID from Jokes`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var jokes []*Joke
+	for rows.Next() {
+		var j Joke
+		err := rows.Scan(&j.JokeID, &j.Joke, &j.Likes, &j.Date, &j.CategoryID)
+		if err != nil {
+			return nil, err
+		}
+		jokes = append(jokes, &j)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return jokes, nil
 }
 
 func ProposedJokes() ([]*Joke, error) {
@@ -539,6 +562,15 @@ func adminHandler(w http.ResponseWriter, r *http.Request) *NetError {
 	return nil
 }
 
+func sitemapHandler(w http.ResponseWriter, r *http.Request) *NetError {
+	w.Header().Set("Content-Type", mime.TypeByExtension(path.Ext(r.URL.Path)))
+	err := templates.ExecuteTemplate(w, "sitemap.html", nil)
+	if err != nil {
+		return &NetError{500, err.Error()}
+	}
+	return nil
+}
+
 func main() {
 	p := ":8080"
 	if len(os.Args) > 1 {
@@ -549,6 +581,7 @@ func main() {
 	http.HandleFunc("/like", errorHandler(likeHandler))
 	http.HandleFunc(PathSubmit, errorHandler(submitHandler))
 	http.HandleFunc(PathAdmin, errorHandler(adminHandler))
+	http.HandleFunc("/sitemap.txt", errorHandler(sitemapHandler))
 	http.HandleFunc("/", errorHandler(rootHandler))
 	err := http.ListenAndServe(p, nil)
 	if err != nil {
