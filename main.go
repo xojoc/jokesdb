@@ -128,7 +128,7 @@ func (c *Category) AbsUrl() string {
 	return Domain + PathCategory + c.Slug
 }
 func (c *Category) Title() string {
-	return "BarzeDette :) | " + c.Name
+	return SiteTitle + c.Name
 }
 
 func AllCategories() ([]*Category, error) {
@@ -263,7 +263,7 @@ func jokeHandler(w http.ResponseWriter, r *http.Request) *NetError {
 		return &NetError{500, err.Error()}
 	}
 
-	err = templates.ExecuteTemplate(w, "barzelletta-page.html", b)
+	err = templates.ExecuteTemplate(w, "joke-page.html", b)
 	if err != nil {
 		return &NetError{500, err.Error()}
 	}
@@ -327,7 +327,7 @@ func categoryHandler(w http.ResponseWriter, r *http.Request) *NetError {
 	}
 
 	c.Jokes = jokes
-	err = templates.ExecuteTemplate(w, "categoria.html", c)
+	err = templates.ExecuteTemplate(w, "category.html", c)
 	if err != nil {
 		return &NetError{500, err.Error()}
 	}
@@ -459,7 +459,7 @@ func submitHandler(w http.ResponseWriter, r *http.Request) *NetError {
 		}
 	} else if r.Method == "POST" {
 		r.ParseForm()
-		_, err := DB.Exec(`INSERT INTO proposed_jokes VALUES(?);`, r.PostForm.Get("barzelletta"))
+		_, err := DB.Exec(`INSERT INTO proposed_jokes VALUES(?);`, r.PostForm.Get("joke-submit"))
 		if err != nil {
 			return &NetError{500, err.Error()}
 		}
@@ -531,7 +531,7 @@ func adminHandler(w http.ResponseWriter, r *http.Request) *NetError {
 			}
 		}
 
-		_, err = DB.Exec(`INSERT INTO Jokes(Joke,Reply,Likes,Date,CategoryID) VALUES(?,?,?,?,?);`, r.PostForm.Get("barzelletta"), r.PostForm.Get("risposta"), 0, time.Now(), c)
+		_, err = DB.Exec(`INSERT INTO Jokes(Joke,Reply,Likes,Date,CategoryID) VALUES(?,?,?,?,?);`, r.PostForm.Get("joke-submit"), r.PostForm.Get("risposta"), 0, time.Now(), c)
 		if err != nil {
 			return &NetError{500, err.Error()}
 		}
