@@ -512,7 +512,7 @@ func adminHandler(w http.ResponseWriter, r *http.Request) *NetError {
 		r.ParseForm()
 		var c uint64
 
-		if new := r.PostForm.Get("nuova-categoria"); new != "" {
+		if new := r.PostForm.Get("new-category"); new != "" {
 			res, err := DB.Exec(`INSERT INTO Categories(Name, Slug) Values(?,?);`, new, r.PostForm.Get("slug"))
 			if err != nil {
 				return &NetError{500, err.Error()}
@@ -531,7 +531,7 @@ func adminHandler(w http.ResponseWriter, r *http.Request) *NetError {
 			}
 		}
 
-		_, err = DB.Exec(`INSERT INTO Jokes(Joke,Reply,Likes,Date,CategoryID) VALUES(?,?,?,?,?);`, r.PostForm.Get("joke-submit"), r.PostForm.Get("risposta"), 0, time.Now(), c)
+		_, err = DB.Exec(`INSERT INTO Jokes(Joke,Likes,Date,CategoryID) VALUES(?,?,?,?);`, r.PostForm.Get("joke-submit"), 0, time.Now(), c)
 		if err != nil {
 			return &NetError{500, err.Error()}
 		}

@@ -4,9 +4,7 @@
 {{range ProposedJokes}}
 <form action="" method="post">
   <p>Suggerisci una barzelletta...</p>
-  <textarea name="barzelletta" id="barzelletta" rows="10" cols="50">{{.Joke}}</textarea>
-  <p>...se è una freddura inserisci la risposta separatamente...</p>
-  <textarea name="risposta" id="risposta" rows="2" cols="50"></textarea>
+  <textarea name="joke-submit" id="joke-submit" rows="10" cols="50">{{.Joke}}</textarea>
   <p>...scegli una categoria apropriata...</p>
   <select name="categoria" id="categoria">
     {{range AllCategories}}
@@ -14,7 +12,7 @@
     {{end}}
   </select>
   <p>...oppure se nessuna delle categorie di sopra è adeguata, suggeriscine una nuova...</p>
-  <input type="text" name="nuova-categoria">
+  <input type="text" name="new-category">
   <p>...e lo slug...</p>
   <input type="text" name="slug">
   <input type="hidden" name="proposed" value="{{.JokeID}}">
