@@ -128,7 +128,7 @@ func (c *Category) AbsUrl() string {
 	return Domain + PathCategory + c.Slug
 }
 func (c *Category) Title() string {
-	return SiteTitle + c.Name
+	return SiteTitle + " - " + c.Name
 }
 
 func AllCategories() ([]*Category, error) {
