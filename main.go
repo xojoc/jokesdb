@@ -459,6 +459,7 @@ func submitHandler(w http.ResponseWriter, r *http.Request) *NetError {
 		}
 	} else if r.Method == "POST" {
 		r.ParseForm()
+		log.Print(r.PostForm.Get("joke-submit"))
 		_, err := DB.Exec(`INSERT INTO proposed_jokes VALUES(?);`, r.PostForm.Get("joke-submit"))
 		if err != nil {
 			return &NetError{500, err.Error()}
@@ -525,7 +526,7 @@ func adminHandler(w http.ResponseWriter, r *http.Request) *NetError {
 			c = uint64(c64)
 
 		} else {
-			c, err = strconv.ParseUint(r.PostForm.Get("categoria"), 10, 64)
+			c, err = strconv.ParseUint(r.PostForm.Get("categoryid"), 10, 64)
 			if err != nil {
 				return &NetError{500, err.Error()}
 			}
