@@ -28,7 +28,7 @@ func init() {
 	}
 }
 
-var templates = htpl.Must(htpl.New("").Funcs(htpl.FuncMap{"AllCategories": AllCategories, "AllJokes": AllJokes, "ProposedJokes": ProposedJokes, "DefaultTitle": DefaultTitle}).ParseGlob("*.html"))
+var templates = htpl.Must(htpl.New("").Funcs(htpl.FuncMap{"AllCategories": AllCategories, "GetJokes": GetJokes, "ProposedJokes": ProposedJokes, "DefaultTitle": DefaultTitle}).ParseGlob("*.html"))
 
 type Joke struct {
 	JokeID     uint64
@@ -153,49 +153,6 @@ func AllCategories() ([]*Category, error) {
 	return categories, nil
 }
 
-func AllJokes() ([]*Joke, error) {
-	rows, err := DB.Query(`select JokeID, Joke, Likes, Date, CategoryID from Jokes`)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var jokes []*Joke
-	for rows.Next() {
-		var j Joke
-		err := rows.Scan(&j.JokeID, &j.Joke, &j.Likes, &j.Date, &j.CategoryID)
-		if err != nil {
-			return nil, err
-		}
-		jokes = append(jokes, &j)
-	}
-	err = rows.Err()
-	if err != nil {
-		return nil, err
-	}
-
-	return jokes, nil
-}
-
-func getCategoryByID(id uint64) (*Category, error) {
-	c := &Category{}
-	err := DB.QueryRow(`select Name, Slug from Categories where CategoryID=?;`, id).Scan(&c.Name, &c.Slug)
-	if err != nil {
-		return nil, err
-	}
-	c.CategoryID = id
-	return c, nil
-}
-
-func getCategoryBySlug(slug string) (*Category, error) {
-	c := &Category{}
-	err := DB.QueryRow(`select CategoryID, Name from Categories where Slug=?;`, slug).Scan(&c.CategoryID, &c.Name)
-	if err != nil {
-		return nil, err
-	}
-	c.Slug = slug
-	return c, nil
-}
-
 func orderBy(by string) string {
 	switch by {
 	case "newer":
@@ -207,18 +164,34 @@ func orderBy(by string) string {
 	}
 }
 
-func GetJokes(c *Category) ([]*Joke, error) {
+func GetJokes(categoryID uint64, order string, limit uint) ([]*Joke, error) {
 	var rows *sql.Rows
 	var err error
-	if c == nil {
-		rows, err = DB.Query(`select JokeID, Joke, Likes, Date, CategoryID from Jokes;`)
-	} else {
 
-		rows, err = DB.Query(`select JokeID, Joke, Likes, Date, CategoryID from Jokes where CategoryID=? `+orderBy(c.OrderBy)+`;`, c.CategoryID)
+	var c *Category
+	if categoryID > 0 {
+		c, err = getCategoryByID(categoryID)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	l := ""
+	if limit > 0 {
+		l = " limit " + fmt.Sprint("%d", limit)
+	}
+
+	if categoryID == 0 {
+		s := `select JokeID, Joke, Likes, Date, CategoryID from Jokes ` + orderBy(order) + l + `;`
+		log.Print(s)
+		rows, err = DB.Query(s)
+	} else {
+		rows, err = DB.Query(`select JokeID, Joke, Likes, Date, CategoryID from Jokes where CategoryID=? `+orderBy(order)+l+`;`, categoryID)
 	}
 	if err != nil {
 		return nil, err
 	}
+	log.Print("here")
 	defer rows.Close()
 	var jokes []*Joke
 	for rows.Next() {
@@ -227,8 +200,14 @@ func GetJokes(c *Category) ([]*Joke, error) {
 		if err != nil {
 			return nil, err
 		}
-		//		j.WasLiked(r)
-		j.Category = c
+		if categoryID > 0 {
+			j.Category = c
+		} else {
+			j.Category, err = getCategoryByID(j.CategoryID)
+			if err != nil {
+				return nil, err
+			}
+		}
 		jokes = append(jokes, &j)
 	}
 	err = rows.Err()
@@ -262,6 +241,37 @@ func ProposedJokes() ([]*Joke, error) {
 	return jokes, nil
 }
 
+func getCategoryByID(id uint64) (*Category, error) {
+	c := &Category{}
+	err := DB.QueryRow(`select Name, Slug from Categories where CategoryID=?;`, id).Scan(&c.Name, &c.Slug)
+	if err != nil {
+		return nil, err
+	}
+	c.CategoryID = id
+	return c, nil
+}
+
+func getCategoryBySlug(slug string) (*Category, error) {
+	c := &Category{}
+	err := DB.QueryRow(`select CategoryID, Name from Categories where Slug=?;`, slug).Scan(&c.CategoryID, &c.Name)
+	if err != nil {
+		return nil, err
+	}
+	c.Slug = slug
+	return c, nil
+}
+
+func getJokeByID(id uint64) (*Joke, error) {
+	j := &Joke{}
+	err := DB.QueryRow(`select Joke, Likes, Date, CategoryID from Jokes where JokeID=?;`, id).Scan(&j.Joke, &j.Likes, &j.Date, &j.CategoryID)
+	if err != nil {
+		return nil, err
+	}
+	j.JokeID = id
+	j.Category, err = getCategoryByID(j.CategoryID)
+	return j, err
+}
+
 type myHandler func(http.ResponseWriter, *http.Request) *NetError
 
 func errorHandler(h myHandler) http.HandlerFunc {
@@ -288,18 +298,16 @@ func errorHandler(h myHandler) http.HandlerFunc {
 }
 
 func jokeHandler(w http.ResponseWriter, r *http.Request) *NetError {
-	bidstr := r.URL.Path[len(PathJoke):]
-	if bidstr == "" {
+	idstr := r.URL.Path[len(PathJoke):]
+	if idstr == "" {
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 		return nil
 	}
-	bid, err := strconv.ParseUint(bidstr, 10, 64)
+	id, err := strconv.ParseUint(idstr, 10, 64)
 	if err != nil {
 		return &NetError{404, err.Error()}
 	}
-
-	b := &Joke{}
-	err = DB.QueryRow(`select Joke, Likes, Date, CategoryID from Jokes where JokeID=?;`, bid).Scan(&b.Joke, &b.Likes, &b.Date, &b.CategoryID)
+	j, err := getJokeByID(id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return &NetError{404, err.Error()}
@@ -307,19 +315,11 @@ func jokeHandler(w http.ResponseWriter, r *http.Request) *NetError {
 			return &NetError{500, err.Error()}
 		}
 	}
-	b.JokeID = bid
-	b.WasLiked(r)
-
-	b.Category, err = getCategoryByID(b.CategoryID)
+	j.WasLiked(r)
+	err = templates.ExecuteTemplate(w, "joke-page.html", j)
 	if err != nil {
 		return &NetError{500, err.Error()}
 	}
-
-	err = templates.ExecuteTemplate(w, "joke-page.html", b)
-	if err != nil {
-		return &NetError{500, err.Error()}
-	}
-
 	return nil
 }
 
@@ -329,9 +329,6 @@ func categoryHandler(w http.ResponseWriter, r *http.Request) *NetError {
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 		return nil
 	}
-
-	//	c := &Category{}
-	//	err := DB.QueryRow(`select CategoryID, Name from Categories where Slug=?`, slug).Scan(&c.CategoryID, &c.Name)
 	c, err := getCategoryBySlug(slug)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -340,57 +337,25 @@ func categoryHandler(w http.ResponseWriter, r *http.Request) *NetError {
 			return &NetError{500, err.Error()}
 		}
 	}
-	//	c.Slug = slug
-
-	//	o := ""
 	switch r.URL.Query().Get("orderby") {
 	case "newer":
-		//		o = "Date desc;"
 		c.OrderBy = "newer"
 	case "older":
-		//		o = "Date asc;"
 		c.OrderBy = "older"
 	default:
-		//		o = "Likes desc;"
 		c.OrderBy = "likes"
 	}
-	/*
-		rows, err := DB.Query(`select JokeID,Joke,Reply,Likes from Jokes where CategoryID=? order by `+o, c.CategoryID)
-		if err != nil {
-			if err == sql.ErrNoRows {
-				return &NetError{404, err.Error()}
-			} else {
-				return &NetError{500, err.Error()}
-			}
-		}
-		defer rows.Close()
-		var jokes []*Joke
-		for rows.Next() {
-			var j Joke
-			err := rows.Scan(&j.JokeID, &j.Joke, &j.Reply, &j.Likes)
-			if err != nil {
-				return &NetError{500, err.Error()}
-			}
-			j.WasLiked(r)
-			j.Category = c
-			jokes = append(jokes, &j)
-		}
-		err = rows.Err()
-	*/
-	c.Jokes, err = GetJokes(c)
+	c.Jokes, err = GetJokes(c.CategoryID, c.OrderBy, 0)
 	if err != nil {
 		return &NetError{500, err.Error()}
 	}
 	for _, j := range c.Jokes {
 		j.WasLiked(r)
 	}
-
-	//	c.Jokes = jokes
 	err = templates.ExecuteTemplate(w, "category.html", c)
 	if err != nil {
 		return &NetError{500, err.Error()}
 	}
-
 	return nil
 }
 
@@ -455,7 +420,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) *NetError {
 		http.Redirect(w, r, "/index.html", http.StatusMovedPermanently)
 		return nil
 	} else if r.URL.Path == "/index.html" {
-		rows, err := DB.Query(`select JokeID,Joke,Likes,CategoryID from Jokes order by date desc limit 20;`)
+		jokes, err := GetJokes(0, "newer", 0)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				return &NetError{404, err.Error()}
@@ -463,26 +428,9 @@ func rootHandler(w http.ResponseWriter, r *http.Request) *NetError {
 				return &NetError{500, err.Error()}
 			}
 		}
-		defer rows.Close()
-		var jokes []*Joke
-		for rows.Next() {
-			var j Joke
-			err := rows.Scan(&j.JokeID, &j.Joke, &j.Likes, &j.CategoryID)
-			if err != nil {
-				return &NetError{500, err.Error()}
-			}
+		for _, j := range jokes {
 			j.WasLiked(r)
-			j.Category, err = getCategoryByID(j.CategoryID)
-			if err != nil {
-				return &NetError{500, err.Error()}
-			}
-			jokes = append(jokes, &j)
 		}
-		err = rows.Err()
-		if err != nil {
-			return &NetError{500, err.Error()}
-		}
-
 		err = templates.ExecuteTemplate(w, "index.html", jokes)
 		if err != nil {
 			return &NetError{500, err.Error()}
