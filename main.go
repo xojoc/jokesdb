@@ -70,7 +70,7 @@ func (j *Joke) AbsUrl() string {
 	return Domain + PathJoke + strconv.FormatUint(j.JokeID, 10)
 }
 func (j *Joke) Title() string {
-	return SiteTitle + " | " + JokeString + ": " + j.Joke[:min(15, len(j.Joke))] + "..."
+	return JokeString + ": " + j.Joke[:min(15, len(j.Joke))] + "..." + " | " + SiteTitle
 }
 
 /*
@@ -127,7 +127,7 @@ func (c *Category) AbsUrl() string {
 	return Domain + PathCategory + c.Slug
 }
 func (c *Category) Title() string {
-	return SiteTitle + " - " + c.Name
+	return c.Name + " - " + SiteTitle
 }
 
 func AllCategories() ([]*Category, error) {
