@@ -38,7 +38,6 @@ func init() {
 		jokes := `create table Jokes
 (JokeID integer not null,
  Joke text not null,
- Reply text not null,
  Likes integer not null,
  Date datetime not null,
  CategoryID integer not null,

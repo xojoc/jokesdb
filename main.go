@@ -33,7 +33,6 @@ var templates = htpl.Must(htpl.New("").Funcs(htpl.FuncMap{"AllCategories": AllCa
 type Joke struct {
 	JokeID     uint64
 	Joke       string
-	Reply      string
 	Likes      uint64
 	Date       time.Time
 	CategoryID uint64
@@ -50,17 +49,6 @@ type Category struct {
 	Jokes   []*Joke
 	OrderBy string
 }
-
-/*
-
-type TweetButton struct {
-	Text    string
-	Via     string
-	Related string
-	Url     string
-	Count   string
-}
-*/
 
 type NetError struct {
 	Code    int
@@ -84,6 +72,17 @@ func (j *Joke) AbsUrl() string {
 func (j *Joke) Title() string {
 	return SiteTitle + " | " + JokeString + ": " + j.Joke[:min(15, len(j.Joke))] + "..."
 }
+
+/*
+
+type TweetButton struct {
+	Text    string
+	Via     string
+	Related string
+	Url     string
+	Count   string
+}
+*/
 
 /*
 func (j *Joke) TweetButton() *TweetButton {
@@ -177,6 +176,69 @@ func AllJokes() ([]*Joke, error) {
 	return jokes, nil
 }
 
+func getCategoryByID(id uint64) (*Category, error) {
+	c := &Category{}
+	err := DB.QueryRow(`select Name, Slug from Categories where CategoryID=?;`, id).Scan(&c.Name, &c.Slug)
+	if err != nil {
+		return nil, err
+	}
+	c.CategoryID = id
+	return c, nil
+}
+
+func getCategoryBySlug(slug string) (*Category, error) {
+	c := &Category{}
+	err := DB.QueryRow(`select CategoryID, Name from Categories where Slug=?;`, slug).Scan(&c.CategoryID, &c.Name)
+	if err != nil {
+		return nil, err
+	}
+	c.Slug = slug
+	return c, nil
+}
+
+func orderBy(by string) string {
+	switch by {
+	case "newer":
+		return " order by Date desc"
+	case "older":
+		return " order by Date asc"
+	default:
+		return " order by Likes desc"
+	}
+}
+
+func GetJokes(c *Category) ([]*Joke, error) {
+	var rows *sql.Rows
+	var err error
+	if c == nil {
+		rows, err = DB.Query(`select JokeID, Joke, Likes, Date, CategoryID from Jokes;`)
+	} else {
+
+		rows, err = DB.Query(`select JokeID, Joke, Likes, Date, CategoryID from Jokes where CategoryID=? `+orderBy(c.OrderBy)+`;`, c.CategoryID)
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var jokes []*Joke
+	for rows.Next() {
+		var j Joke
+		err := rows.Scan(&j.JokeID, &j.Joke, &j.Likes, &j.Date, &j.CategoryID)
+		if err != nil {
+			return nil, err
+		}
+		//		j.WasLiked(r)
+		j.Category = c
+		jokes = append(jokes, &j)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return jokes, nil
+}
+
 func ProposedJokes() ([]*Joke, error) {
 	rows, err := DB.Query(`select rowid, Joke from proposed_jokes;`)
 	if err != nil {
@@ -198,16 +260,6 @@ func ProposedJokes() ([]*Joke, error) {
 	}
 
 	return jokes, nil
-}
-
-func getCategoryByID(id uint64) (*Category, error) {
-	c := &Category{}
-	err := DB.QueryRow(`select Name, Slug from Categories where CategoryID=?`, id).Scan(&c.Name, &c.Slug)
-	if err != nil {
-		return nil, err
-	}
-	c.CategoryID = id
-	return c, nil
 }
 
 type myHandler func(http.ResponseWriter, *http.Request) *NetError
@@ -247,7 +299,7 @@ func jokeHandler(w http.ResponseWriter, r *http.Request) *NetError {
 	}
 
 	b := &Joke{}
-	err = DB.QueryRow(`select Joke, Reply, Likes, Date, CategoryID from Jokes where JokeID=?;`, bid).Scan(&b.Joke, &b.Reply, &b.Likes, &b.Date, &b.CategoryID)
+	err = DB.QueryRow(`select Joke, Likes, Date, CategoryID from Jokes where JokeID=?;`, bid).Scan(&b.Joke, &b.Likes, &b.Date, &b.CategoryID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return &NetError{404, err.Error()}
@@ -278,8 +330,9 @@ func categoryHandler(w http.ResponseWriter, r *http.Request) *NetError {
 		return nil
 	}
 
-	c := &Category{}
-	err := DB.QueryRow(`select CategoryID, Name from Categories where Slug=?`, slug).Scan(&c.CategoryID, &c.Name)
+	//	c := &Category{}
+	//	err := DB.QueryRow(`select CategoryID, Name from Categories where Slug=?`, slug).Scan(&c.CategoryID, &c.Name)
+	c, err := getCategoryBySlug(slug)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return &NetError{404, err.Error()}
@@ -287,46 +340,52 @@ func categoryHandler(w http.ResponseWriter, r *http.Request) *NetError {
 			return &NetError{500, err.Error()}
 		}
 	}
-	c.Slug = slug
+	//	c.Slug = slug
 
-	o := ""
+	//	o := ""
 	switch r.URL.Query().Get("orderby") {
 	case "newer":
-		o = "Date desc;"
+		//		o = "Date desc;"
 		c.OrderBy = "newer"
 	case "older":
-		o = "Date asc;"
+		//		o = "Date asc;"
 		c.OrderBy = "older"
 	default:
-		o = "Likes desc;"
+		//		o = "Likes desc;"
 		c.OrderBy = "likes"
 	}
-	rows, err := DB.Query(`select JokeID,Joke,Reply,Likes from Jokes where CategoryID=? order by `+o, c.CategoryID)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return &NetError{404, err.Error()}
-		} else {
-			return &NetError{500, err.Error()}
-		}
-	}
-	defer rows.Close()
-	var jokes []*Joke
-	for rows.Next() {
-		var j Joke
-		err := rows.Scan(&j.JokeID, &j.Joke, &j.Reply, &j.Likes)
+	/*
+		rows, err := DB.Query(`select JokeID,Joke,Reply,Likes from Jokes where CategoryID=? order by `+o, c.CategoryID)
 		if err != nil {
-			return &NetError{500, err.Error()}
+			if err == sql.ErrNoRows {
+				return &NetError{404, err.Error()}
+			} else {
+				return &NetError{500, err.Error()}
+			}
 		}
-		j.WasLiked(r)
-		j.Category = c
-		jokes = append(jokes, &j)
-	}
-	err = rows.Err()
+		defer rows.Close()
+		var jokes []*Joke
+		for rows.Next() {
+			var j Joke
+			err := rows.Scan(&j.JokeID, &j.Joke, &j.Reply, &j.Likes)
+			if err != nil {
+				return &NetError{500, err.Error()}
+			}
+			j.WasLiked(r)
+			j.Category = c
+			jokes = append(jokes, &j)
+		}
+		err = rows.Err()
+	*/
+	c.Jokes, err = GetJokes(c)
 	if err != nil {
 		return &NetError{500, err.Error()}
 	}
+	for _, j := range c.Jokes {
+		j.WasLiked(r)
+	}
 
-	c.Jokes = jokes
+	//	c.Jokes = jokes
 	err = templates.ExecuteTemplate(w, "category.html", c)
 	if err != nil {
 		return &NetError{500, err.Error()}
@@ -396,7 +455,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) *NetError {
 		http.Redirect(w, r, "/index.html", http.StatusMovedPermanently)
 		return nil
 	} else if r.URL.Path == "/index.html" {
-		rows, err := DB.Query(`select JokeID,Joke,Reply,Likes,CategoryID from Jokes order by date desc limit 20;`)
+		rows, err := DB.Query(`select JokeID,Joke,Likes,CategoryID from Jokes order by date desc limit 20;`)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				return &NetError{404, err.Error()}
@@ -408,7 +467,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) *NetError {
 		var jokes []*Joke
 		for rows.Next() {
 			var j Joke
-			err := rows.Scan(&j.JokeID, &j.Joke, &j.Reply, &j.Likes, &j.CategoryID)
+			err := rows.Scan(&j.JokeID, &j.Joke, &j.Likes, &j.CategoryID)
 			if err != nil {
 				return &NetError{500, err.Error()}
 			}

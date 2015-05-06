@@ -6,7 +6,7 @@
   <p>Suggerisci una barzelletta...</p>
   <textarea name="joke-submit" id="joke-submit" rows="10" cols="50">{{.Joke}}</textarea>
   <p>...scegli una categoria apropriata...</p>
-  <select name="categoryid" id="categoyid">
+  <select name="categoryid" id="categoryid">
     {{range AllCategories}}
     <option value="{{.CategoryID}}">{{.Name}}</option>
     {{end}}
