@@ -182,16 +182,13 @@ func GetJokes(categoryID uint64, order string, limit uint) ([]*Joke, error) {
 	}
 
 	if categoryID == 0 {
-		s := `select JokeID, Joke, Likes, Date, CategoryID from Jokes ` + orderBy(order) + l + `;`
-		log.Print(s)
-		rows, err = DB.Query(s)
+		rows, err = DB.Query(`select JokeID, Joke, Likes, Date, CategoryID from Jokes ` + orderBy(order) + l + `;`)
 	} else {
 		rows, err = DB.Query(`select JokeID, Joke, Likes, Date, CategoryID from Jokes where CategoryID=? `+orderBy(order)+l+`;`, categoryID)
 	}
 	if err != nil {
 		return nil, err
 	}
-	log.Print("here")
 	defer rows.Close()
 	var jokes []*Joke
 	for rows.Next() {
@@ -466,7 +463,6 @@ func submitHandler(w http.ResponseWriter, r *http.Request) *NetError {
 		}
 	} else if r.Method == "POST" {
 		r.ParseForm()
-		log.Print(r.PostForm.Get("joke-submit"))
 		_, err := DB.Exec(`INSERT INTO proposed_jokes VALUES(?);`, r.PostForm.Get("joke-submit"))
 		if err != nil {
 			return &NetError{500, err.Error()}
