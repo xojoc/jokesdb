@@ -178,7 +178,7 @@ func GetJokes(categoryID uint64, order string, limit uint) ([]*Joke, error) {
 
 	l := ""
 	if limit > 0 {
-		l = " limit " + fmt.Sprint("%d", limit)
+		l = " limit " + fmt.Sprint(limit)
 	}
 
 	if categoryID == 0 {
