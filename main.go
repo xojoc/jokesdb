@@ -417,7 +417,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) *NetError {
 		http.Redirect(w, r, "/index.html", http.StatusMovedPermanently)
 		return nil
 	} else if r.URL.Path == "/index.html" {
-		jokes, err := GetJokes(0, "newer", 0)
+		jokes, err := GetJokes(0, "newer", 20)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				return &NetError{404, err.Error()}
