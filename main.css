@@ -29,10 +29,10 @@ img {
     color: black;
     font-size: 25px;
 }
-#invia {
+#submit {
     padding-top: 10px;
 }
-#invia a {
+#submit a {
     color: green;
 }
 
@@ -60,6 +60,7 @@ img {
 @media (max-width: 604px) {
     #skiptomenu {
         margin: 1%;
+        font-size: 20px;
     }
     #share {
         padding-top: 4%;
@@ -95,7 +96,7 @@ img {
         padding-right: 10px;
     }
 
-    #invia {
+    #submit {
         float: right;
         padding-left: 15px;
     }
