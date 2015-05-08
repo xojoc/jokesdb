@@ -5,27 +5,27 @@
   <h2>{{.Name}}</h2>
 
   <div id="order">
-    Le barzellette più:
+    Order By:
     {{if eq .OrderBy "likes"}}
-    votate
+    votes
     {{else}}
-    <a href="?orderby=likes">votate</a>
+    <a href="?orderby=likes">votes</a>
     {{end}}
 
      - 
 
     {{if eq .OrderBy "newer"}}
-    nuove
+    newer
     {{else}}
-    <a href="?orderby=newer">nuove</a>
+    <a href="?orderby=newer">newer</a>
     {{end}}
 
      - 
 
     {{if eq .OrderBy "older"}}
-    vecchie
+    older
     {{else}}
-    <a href="?orderby=older">vecchie</a>
+    <a href="?orderby=older">older</a>
     {{end}}
   </div>
 
