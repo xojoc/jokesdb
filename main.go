@@ -70,7 +70,7 @@ func (j *Joke) AbsUrl() string {
 	return Domain + PathJoke + strconv.FormatUint(j.JokeID, 10)
 }
 func (j *Joke) Title() string {
-	return SiteTitle + " | " + JokeString + ": " + j.Joke[:min(15, len(j.Joke))] + "..."
+	return JokeString + ": " + []rune(j.Joke)[:min(15, len(j.Joke))] + "..." + " | " + SiteTitle
 }
 
 /*
@@ -127,7 +127,7 @@ func (c *Category) AbsUrl() string {
 	return Domain + PathCategory + c.Slug
 }
 func (c *Category) Title() string {
-	return SiteTitle + " - " + c.Name
+	return c.Name + " - " + SiteTitle
 }
 
 func AllCategories() ([]*Category, error) {
@@ -178,7 +178,7 @@ func GetJokes(categoryID uint64, order string, limit uint) ([]*Joke, error) {
 
 	l := ""
 	if limit > 0 {
-		l = " limit " + fmt.Sprint("%d", limit)
+		l = " limit " + fmt.Sprint(limit)
 	}
 
 	if categoryID == 0 {
@@ -417,7 +417,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) *NetError {
 		http.Redirect(w, r, "/index.html", http.StatusMovedPermanently)
 		return nil
 	} else if r.URL.Path == "/index.html" {
-		jokes, err := GetJokes(0, "newer", 0)
+		jokes, err := GetJokes(0, "newer", 20)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				return &NetError{404, err.Error()}
