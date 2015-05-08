@@ -70,7 +70,7 @@ func (j *Joke) AbsUrl() string {
 	return Domain + PathJoke + strconv.FormatUint(j.JokeID, 10)
 }
 func (j *Joke) Title() string {
-	return JokeString + ": " + []rune(j.Joke)[:min(15, len(j.Joke))] + "..." + " | " + SiteTitle
+	return JokeString + ": " + string([]rune(j.Joke)[:min(15, len(j.Joke))]) + "..." + " | " + SiteTitle
 }
 
 /*
