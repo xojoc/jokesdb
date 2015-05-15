@@ -51,7 +51,7 @@ img {
     font-weight: 700;
 }
 
-#promotion {
+.promotion {
     color: red !important;
     font-size: 20px !important;
     font-weight: 700 !important;
