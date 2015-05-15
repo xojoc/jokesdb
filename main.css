@@ -51,7 +51,7 @@ img {
     font-weight: 700;
 }
 
-#film {
+#promotion {
     color: red !important;
     font-size: 20px !important;
     font-weight: 700 !important;
@@ -136,6 +136,7 @@ img {
 
 .heart {
     font-size: 30px;
+    cursor: pointer;
 }
 
 .pulse {
