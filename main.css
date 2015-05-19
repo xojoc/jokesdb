@@ -127,6 +127,7 @@ img {
 #sidebar li {
 /*    font-size: 25px; */
     list-style-type: none;
+    padding-top: 5px;
 }
 .heart {
     font-size: 23px;
