@@ -1,7 +1,7 @@
 <div class="barzelletta">
   <div class="barzelletta-panello">
     <a class="nav" href="{{.AbsUrl}}" title="{{.Title}}"><img class="linksymbol" src="/link.svg" alt="Link symbol"/></a>
-    {{.Likes}}<span id="{{.JokeID}}" class="heart {{if .Liked}}pulse{{end}}" onClick="like(this);">♥</span>
+    {{.Likes}}<span id="{{.JokeID}}" class="heart {{if .Liked}}pulse{{end}}" onClick="like(this);" title="I like it!">♥</span>
     <a class="nav" href="{{.Category.AbsUrl}}" title="{{.Category.Name}}">{{.Category.Name}}</a>
   </div>
   <p>{{.Joke}}</p>
