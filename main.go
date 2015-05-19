@@ -101,6 +101,33 @@ func (j *Joke) TweetButton() *TweetButton {
 	return t
 }
 */
+
+func (cj *Joke) Next() *Joke {
+	j := &Joke{}
+	err := DB.QueryRow(`select JokeID, Joke, Likes, Date, CategoryID from Jokes where JokeID > ? order by JokeID asc limit 1;`, cj.JokeID).Scan(&j.JokeID, &j.Joke, &j.Likes, &j.Date, &j.CategoryID)
+	if err != nil {
+		return nil
+	}
+	j.Category, err = getCategoryByID(j.CategoryID)
+	if err != nil {
+		return nil
+	}
+	return j
+}
+
+func (cj *Joke) Prev() *Joke {
+	j := &Joke{}
+	err := DB.QueryRow(`select JokeID, Joke, Likes, Date, CategoryID from Jokes where JokeID < ? order by JokeID desc limit 1;`, cj.JokeID).Scan(&j.JokeID, &j.Joke, &j.Likes, &j.Date, &j.CategoryID)
+	if err != nil {
+		return nil
+	}
+	j.Category, err = getCategoryByID(j.CategoryID)
+	if err != nil {
+		return nil
+	}
+	return j
+}
+
 func (j *Joke) WasLiked(r *http.Request) {
 	c, err := r.Cookie("uuid")
 	if err != nil {
