@@ -104,27 +104,25 @@ func (j *Joke) TweetButton() *TweetButton {
 
 func (cj *Joke) Next() *Joke {
 	j := &Joke{}
-	err := DB.QueryRow(`select JokeID, Joke, Likes, Date, CategoryID from Jokes where JokeID > ? order by JokeID asc limit 1;`, cj.JokeID).Scan(&j.JokeID, &j.Joke, &j.Likes, &j.Date, &j.CategoryID)
+	err := DB.QueryRow(`select JokeID, Joke, Likes, Date, CategoryID from Jokes
+where JokeID > ? and CategoryID = ?
+order by JokeID asc limit 1;`, cj.JokeID, cj.Category.CategoryID).Scan(&j.JokeID, &j.Joke, &j.Likes, &j.Date, &j.CategoryID)
 	if err != nil {
 		return nil
 	}
-	j.Category, err = getCategoryByID(j.CategoryID)
-	if err != nil {
-		return nil
-	}
+	j.Category = cj.Category
 	return j
 }
 
 func (cj *Joke) Prev() *Joke {
 	j := &Joke{}
-	err := DB.QueryRow(`select JokeID, Joke, Likes, Date, CategoryID from Jokes where JokeID < ? order by JokeID desc limit 1;`, cj.JokeID).Scan(&j.JokeID, &j.Joke, &j.Likes, &j.Date, &j.CategoryID)
+	err := DB.QueryRow(`select JokeID, Joke, Likes, Date, CategoryID from Jokes
+where JokeID < ? and CategoryID = ?
+order by JokeID desc limit 1;`, cj.JokeID, cj.Category.CategoryID).Scan(&j.JokeID, &j.Joke, &j.Likes, &j.Date, &j.CategoryID)
 	if err != nil {
 		return nil
 	}
-	j.Category, err = getCategoryByID(j.CategoryID)
-	if err != nil {
-		return nil
-	}
+	j.Category = cj.Category
 	return j
 }
 
