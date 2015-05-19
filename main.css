@@ -132,6 +132,7 @@ img {
 .heart {
     font-size: 23px;
     cursor: pointer;
+    vertical-align: middle;
 }
 .pulse {
     color: red;
