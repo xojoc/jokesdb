@@ -2,8 +2,11 @@
 
 <div id="main">
   {{template "joke.html" .}}
+  {{with .Prev}}
+  <a class="prev" href="{{.AbsUrl}}" title="{{.Title}}">Previous joke</a>
+  {{end}}
   {{with .Next}}
-  <a class="nav" href="{{.AbsUrl}}" title="{{.Title}}"><img class="linksymbol" src="/link.svg" alt="Link symbol"/></a>
+  <a class="next" href="{{.AbsUrl}}" title="{{.Title}}">Next joke</a>
   {{end}}
 </div>
 

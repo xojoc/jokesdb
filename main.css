@@ -28,6 +28,17 @@ img {
     font-weight: 700;
     text-decoration: none;
 }
+.prev {
+    color: brown;
+    font-weight: 700;
+    text-decoration: none;
+}
+.next {
+    color: brown;
+    font-weight: 700;
+    text-decoration: none;
+    float: right;
+}
 #sidebar a {
     font-size: 18px;
 }
