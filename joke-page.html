@@ -1,7 +1,10 @@
 {{template "header.html" .}}
 
 <div id="main">
-{{template "joke.html" .}}
+  {{template "joke.html" .}}
+  {{with .Next}}
+  <a class="nav" href="{{.AbsUrl}}" title="{{.Title}}"><img class="linksymbol" src="/link.svg" alt="Link symbol"/></a>
+  {{end}}
 </div>
 
 {{template "sidebar.html"}}
