@@ -1,7 +1,6 @@
 {{template "header.html" .}}
 <h1>{{.Name}}</h1>
-
-<div id="order">
+<p id=order>
     Order by:
     {{if eq .OrderBy "likes"}}
     votes
@@ -24,7 +23,7 @@
     {{else}}
     <a href="?orderby=older">older</a>
     {{end}}
-</div>
+</p>
 
 {{range .Jokes}}
 {{template "joke.html" .}}
