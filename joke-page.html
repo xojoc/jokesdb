@@ -2,10 +2,10 @@
 
 {{template "joke.html" .}}
 {{with .Prev}}
-<a class="prev" href="{{.AbsUrl}}" title="{{.Title}}">Previous joke</a>
+<a rel=prev href="{{.AbsUrl}}" title="{{.Title}}">Previous joke</a>
 {{end}}
 {{with .Next}}
-<a class="next" href="{{.AbsUrl}}" title="{{.Title}}">Next joke</a>
+<a rel=next href="{{.AbsUrl}}" title="{{.Title}}">Next joke</a>
 {{end}}
 
 {{template "sidebar.html"}}
