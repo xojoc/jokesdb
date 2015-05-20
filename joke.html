@@ -4,6 +4,10 @@
     {{.Likes}}<span id="{{.JokeID}}" class="heart {{if .Liked}}pulse{{end}}" onClick="like(this);" title="I like it!">♥</span>
     <a class="nav" href="{{.Category.AbsUrl}}" title="{{.Category.Name}}">{{.Category.Name}}</a>
   </div>
-  <p>{{.Joke}}</p>
+
+  <article>
+    <p>{{.Joke}}</p>
+  </article>
+
 </div>
 
