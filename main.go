@@ -438,10 +438,11 @@ func likeHandler(w http.ResponseWriter, r *http.Request) *NetError {
 
 func rootHandler(w http.ResponseWriter, r *http.Request) *NetError {
 	p := r.URL.Path
-	if p == "" || p == "/" {
+	switch {
+	case p == "" || p == "/":
 		http.Redirect(w, r, "/index.html", http.StatusMovedPermanently)
 		return nil
-	} else if p == "/index.html" {
+	case p == "/index.html":
 		jokes, err := GetJokes(0, "newer", 20)
 		if err != nil {
 			if err == sql.ErrNoRows {
@@ -458,17 +459,16 @@ func rootHandler(w http.ResponseWriter, r *http.Request) *NetError {
 			return &NetError{500, err.Error()}
 		}
 		return nil
-	} else if p == "/main.css" || p == "/main.js" {
-		http.ServeFile(w, r, "."+p)
-		return nil
-	} else if path.Ext(p) == ".html" {
+	case path.Ext(p) == ".html":
 		err := templates.ExecuteTemplate(w, p[1:], nil)
 		if err != nil {
 			return &NetError{500, err.Error()}
 		}
+	default:
+		http.ServeFile(w, r, "."+p)
+		return nil
 	}
-
-	return &NetError{404, "File not found: " + p}
+	return nil
 }
 
 func submitHandler(w http.ResponseWriter, r *http.Request) *NetError {
