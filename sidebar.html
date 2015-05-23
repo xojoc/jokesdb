@@ -1,10 +1,5 @@
 </section> {{/* main */}}
-
-<nav id="sidebar">
-  <ul>
-  {{range AllCategories}}
-  <li><a class="nav" href="{{.AbsUrl}}" title="{{.Name}}">{{.Name}}</a></li>
-  {{end}}
-  <li><a class="promotion" href="http://imgur.com/a/U4OAp" title="JoJokes memes">JoJokes memes</a></li>
-  </ul>
+<nav id="sidebar"><ul>{{range AllCategories}}<li><a class="nav" href="{{.AbsUrl}}" title="{{.Name}}">{{.Name}}</a></li>{{end}}
+<li><a class="promotion" href="http://imgur.com/a/U4OAp" title="JoJokes memes">JoJokes memes</a></li>
+</ul>
 </nav>
