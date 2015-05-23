@@ -464,7 +464,8 @@ func rootHandler(w http.ResponseWriter, r *http.Request) *NetError {
 		if err != nil {
 			return &NetError{500, err.Error()}
 		}
-	default:
+	default: /* Static files */
+		w.Header().Add("Cache-Control", "max-age=604800, public")
 		http.ServeFile(w, r, "."+p)
 		return nil
 	}
