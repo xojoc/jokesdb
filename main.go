@@ -468,7 +468,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) *NetError {
 		}
 	}
 
-	return &NetError{404, nil}
+	return &NetError{404, "File not found: " + p}
 }
 
 func submitHandler(w http.ResponseWriter, r *http.Request) *NetError {
