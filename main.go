@@ -454,14 +454,13 @@ func rootHandler(w http.ResponseWriter, r *http.Request) *NetError {
 		for _, j := range jokes {
 			j.WasLiked(r)
 		}
-		w.Header().Add("Cache-Control", "no-cache, public")
 		err = templates.ExecuteTemplate(w, "index.html", jokes)
 		if err != nil {
 			return &NetError{500, err.Error()}
 		}
 		return nil
 	case path.Ext(p) == ".html":
-		w.Header().Add("Cache-Control", "no-cache, public")
+		w.Header().Add("Cache-Control", "max-age=86400, public")
 		err := templates.ExecuteTemplate(w, p[1:], nil)
 		if err != nil {
 			return &NetError{500, err.Error()}
