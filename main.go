@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/twinj/uuid"
 	htpl "html/template"
-	"io"
 	"io/ioutil"
 	"log"
 	"mime"
@@ -438,10 +437,12 @@ func likeHandler(w http.ResponseWriter, r *http.Request) *NetError {
 }
 
 func rootHandler(w http.ResponseWriter, r *http.Request) *NetError {
-	if r.URL.Path == "" || r.URL.Path == "/" {
+	p := r.URL.Path
+	switch {
+	case p == "" || p == "/":
 		http.Redirect(w, r, "/index.html", http.StatusMovedPermanently)
 		return nil
-	} else if r.URL.Path == "/index.html" {
+	case p == "/index.html":
 		jokes, err := GetJokes(0, "newer", 20)
 		if err != nil {
 			if err == sql.ErrNoRows {
@@ -458,25 +459,15 @@ func rootHandler(w http.ResponseWriter, r *http.Request) *NetError {
 			return &NetError{500, err.Error()}
 		}
 		return nil
-	} else {
-		p := r.URL.Path[len("/"):]
-
-		if path.Ext(p) == ".html" {
-			err := templates.ExecuteTemplate(w, p, nil)
-			if err != nil {
-				return &NetError{500, err.Error()}
-			}
-		} else {
-			f, err := os.Open(p)
-			if err != nil {
-				return &NetError{404, err.Error()}
-			}
-			w.Header().Set("Content-Type", mime.TypeByExtension(path.Ext(p)))
-			io.Copy(w, f)
-			return nil
+	case path.Ext(p) == ".html":
+		err := templates.ExecuteTemplate(w, p[1:], nil)
+		if err != nil {
+			return &NetError{500, err.Error()}
 		}
+	default:
+		http.ServeFile(w, r, "."+p)
+		return nil
 	}
-
 	return nil
 }
 
