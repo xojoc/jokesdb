@@ -1,0 +1,1 @@
+This code powers <http://jojokes.pw> and <http://barzedette.pw>.
