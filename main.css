@@ -40,11 +40,9 @@ a[rel~="next"] {
     text-decoration: none;
     float: right;
 }
-
 #sidebar a {
     font-size: 18px;
 }
-
 #order a {
     color: brown;
     font-weight: 700;
@@ -56,7 +54,6 @@ a[rel~="next"] {
     font-weight: 700;
     text-decoration: none;
 }
-
 @media (max-width: 604px) {
     #skiptomenu {
         font-size: 20px;
@@ -73,20 +70,6 @@ a[rel~="next"] {
     #ads {
         padding-top: 15px;
     }
-/*    #main {
-        margin-left: 1%;
-        margin-right: 1%;
-    }
-*/
-/*
-    #sidebar {
-        margin-left: 1%;
-        margin-right: 1%;
-        margin-top: 4%;
-        margin-bottom: 4%;
-    }
-*/
-    
     .heart {
         font-size: 40px !important;
     }
@@ -112,14 +95,9 @@ a[rel~="next"] {
     }
     #main {
         float: left;
-/*        margin-left: 1%;
-        margin-right: 5%;
-*/
         width: 64%;
-  /*      margin-bottom: 50px; */
     }
     #sidebar {
-/*        margin-right: 1%; */
         padding-top: 50px;
         margin-left: 64%;
     }
@@ -139,7 +117,6 @@ a[rel~="next"] {
     padding: 10px;
 }
 #sidebar li {
-/*    font-size: 25px; */
     list-style-type: none;
     padding-top: 5px;
 }
@@ -147,16 +124,12 @@ a[rel~="next"] {
     font-size: 23px;
     cursor: pointer;
     vertical-align: middle;
+    margin-right: 10px;
 }
 .pulse {
     color: red;
 }
 .linksymbol {
     width: 15px;
-    padding-right: 7px;
+    margin-right: 10px;
 }
-/*
-.linksymbol path {
-    fill: green;
-}
-*/
