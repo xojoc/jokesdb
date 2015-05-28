@@ -436,9 +436,10 @@ func likeHandler(w http.ResponseWriter, r *http.Request) *NetError {
 	return nil
 }
 
-func rootHandler(w http.ResponseWriter, r *http.Request) *NetError {
+func staticHandler(w http.ResponseWriter, r *http.Request) *NetError {
+	fmt.Print(r.URL.Path)
 	w.Header().Add("Cache-Control", "max-age=604800, public")
-	http.ServeFile(w, r, r.URL.Path)
+	http.ServeFile(w, r, "."+r.URL.Path)
 	return nil
 }
 
@@ -472,7 +473,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) *NetError {
 			return &NetError{500, err.Error()}
 		}
 	}
-	return &NetError{404, err.Error()}
+	return &NetError{404, ""}
 }
 
 func submitHandler(w http.ResponseWriter, r *http.Request) *NetError {
@@ -596,7 +597,7 @@ func main() {
 	http.HandleFunc(PathSubmit, errorHandler(submitHandler))
 	http.HandleFunc(PathAdmin, errorHandler(adminHandler))
 	http.HandleFunc("/sitemap.txt", errorHandler(sitemapHandler))
-	http.HandleFunc("/static/", errorHandler(staticHandler))
+	http.Handle("/static/", http.FileServer(http.Dir(".")))
 	http.HandleFunc("/", errorHandler(rootHandler))
 	err := http.ListenAndServe(p, nil)
 	if err != nil {
