@@ -436,7 +436,7 @@ func likeHandler(w http.ResponseWriter, r *http.Request) *NetError {
 	return nil
 }
 
-func rootHandler(w http.ResponseWriter, r *http.Request) *NetError {
+func staticHandler(w http.ResponseWriter, r *http.Request) *NetError {
 	w.Header().Add("Cache-Control", "max-age=604800, public")
 	http.ServeFile(w, r, r.URL.Path)
 	return nil
@@ -472,7 +472,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) *NetError {
 			return &NetError{500, err.Error()}
 		}
 	}
-	return &NetError{404, err.Error()}
+	return &NetError{404, ""}
 }
 
 func submitHandler(w http.ResponseWriter, r *http.Request) *NetError {
