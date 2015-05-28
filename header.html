@@ -2,6 +2,9 @@
 <html>
   <head>
     <meta charset=utf-8>
+    {{with .}}
+    <link rel=canonical href="{{.AbsUrl}}" />
+    {{end}}
     {{if .}}
     <title>{{.Title}}</title>
     {{else}}
