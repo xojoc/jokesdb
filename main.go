@@ -437,12 +437,18 @@ func likeHandler(w http.ResponseWriter, r *http.Request) *NetError {
 }
 
 func rootHandler(w http.ResponseWriter, r *http.Request) *NetError {
+	w.Header().Add("Cache-Control", "max-age=604800, public")
+	http.ServeFile(w, r, r.URL.Path)
+	return nil
+}
+
+func rootHandler(w http.ResponseWriter, r *http.Request) *NetError {
 	p := r.URL.Path
 	switch {
-	case p == "" || p == "/":
-		http.Redirect(w, r, "/index.html", http.StatusMovedPermanently)
+	case p == "" || p == "/index.html":
+		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 		return nil
-	case p == "/index.html":
+	case p == "/":
 		jokes, err := GetJokes(0, "newer", 20)
 		if err != nil {
 			if err == sql.ErrNoRows {
@@ -465,12 +471,8 @@ func rootHandler(w http.ResponseWriter, r *http.Request) *NetError {
 		if err != nil {
 			return &NetError{500, err.Error()}
 		}
-	default: /* Static files */
-		w.Header().Add("Cache-Control", "max-age=604800, public")
-		http.ServeFile(w, r, "."+p)
-		return nil
 	}
-	return nil
+	return &NetError{404, err.Error()}
 }
 
 func submitHandler(w http.ResponseWriter, r *http.Request) *NetError {
@@ -594,6 +596,7 @@ func main() {
 	http.HandleFunc(PathSubmit, errorHandler(submitHandler))
 	http.HandleFunc(PathAdmin, errorHandler(adminHandler))
 	http.HandleFunc("/sitemap.txt", errorHandler(sitemapHandler))
+	http.HandleFunc("/static/", errorHandler(staticHandler))
 	http.HandleFunc("/", errorHandler(rootHandler))
 	err := http.ListenAndServe(p, nil)
 	if err != nil {
