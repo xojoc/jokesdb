@@ -1,4 +1,4 @@
 <article class="barzelletta"><header>
-<a rel=bookmark class="nav" href="{{.AbsUrl}}" title="{{.Title}}"><img class="linksymbol" src="/link.svg" alt="Link symbol"/></a>{{.Likes}}<span id="{{.JokeID}}" class="heart {{if .Liked}}pulse{{end}}" onClick="like(this);" title="I love it!">♥</span><a class=nav href="{{.Category.AbsUrl}}" title="{{.Category.Name}}">{{.Category.Name}}</a></header>
+<a rel=bookmark class="nav" href="{{.AbsUrl}}" title="{{.Title}}"><img class="linksymbol" src="/static/link.svg" alt="Link symbol"/></a>{{.Likes}}<span id="{{.JokeID}}" class="heart {{if .Liked}}pulse{{end}}" onClick="like(this);" title="I love it!">♥</span><a class=nav href="{{.Category.AbsUrl}}" title="{{.Category.Name}}">{{.Category.Name}}</a></header>
   <p>{{.Joke}}</p>
 </article>
