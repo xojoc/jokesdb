@@ -116,7 +116,7 @@ func (j *Joke) WasLiked(r *http.Request) {
 		return
 	}
 
-	u, err := uuid.ParseUUID(c.Value)
+	u, err := uuid.Parse(c.Value)
 	if err != nil {
 		return
 	}
@@ -350,7 +350,7 @@ func likeHandler(w http.ResponseWriter, r *http.Request) *web.NetError {
 		u = uuid.NewV4()
 		http.SetCookie(w, &http.Cookie{Name: "uuid", Value: u.String(), Expires: time.Now().Add(60 * 24 * time.Hour)})
 	} else {
-		u, err = uuid.ParseUUID(c.Value)
+		u, err = uuid.Parse(c.Value)
 		if err != nil {
 			return &web.NetError{500, err.Error()}
 		}
