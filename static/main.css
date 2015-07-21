@@ -8,7 +8,8 @@ body {
     background-color: #eaeaea;
 }
 h1 {
-    font-size: 20px;
+    font-size: 30px;
+    text-align: center;
 }
 h2 {
     font-size: 18px;
@@ -24,6 +25,10 @@ img {
     padding-top: 10px;
 }
 */
+#order {
+    font-size: 20px;
+    margin-bottom: 10px;
+}
 .nav {
     color: green;
     font-weight: 700;
@@ -93,7 +98,7 @@ a[rel~="next"] {
         float: right;
         padding-right: 15px;
     }
-    #main {
+    main {
         float: left;
         width: 64%;
     }

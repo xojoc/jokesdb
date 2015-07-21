@@ -5,12 +5,12 @@ import (
 	"crypto/sha512"
 	"database/sql"
 	"fmt"
-	"github.com/twinj/uuid"
 	"github.com/xojoc/web"
 	htpl "html/template"
-	"io/ioutil"
 	"log"
 	"mime"
+	"gopkg.in/gorp.v1"
+	"math/rand"
 	"net/http"
 	"os"
 	"path"
@@ -18,54 +18,52 @@ import (
 	"time"
 )
 
-/* FIXME: foreign key */
-type Liked struct {
-	UUID   []byte    `sql:"not null"`
-	JokeID uint64    `sql:"not null"`
-	date   time.Time `sql:"not null"`
+var (
+	DB     *gorp.DbMap
+	DBName string = "./jokes.db"
+	// use package-local rand source to avoid excessive locking
+	rng *rand.Rand
+)
+
+type Joke struct {
+	JokeID     uint64
+	Joke       string
+	Date       time.Time
+	CategoryID uint64
+
+	Category *Category `db:"-"`
 }
 
-type Proposed_jokes struct {
-	Joke string `sql:"not null"`
+type Category struct {
+	CategoryID uint64 `sql:"primary key not null"`
+	Name       string `sql:"not null"`
+	Slug       string `sql:"unique not null"`
+
+	Jokes   []*Joke `db:"-"`
+	OrderBy string `db:"-"`
+}
+
+type ProposedJoke struct {
+	JokeID uint64
+	Joke string
 }
 
 func init() {
 	web.CreateLog("log.txt")
+	db, err := sql.Open("sqlite3", DBName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	DB = &gorp.DbMap{Db: db, Dialect: gorp.SqliteDialect{}}
+	DB.AddTableWithName(Category{}, "categories").SetKeys(true, "CategoryID")
+	DB.AddTableWithName(Joke{}, "jokes").SetKeys(true, "JokeID")
+	DB.AddTableWithName(ProposedJoke{}, "proposed_jokes").SetKeys(true, "JokeID")
+	DB.CreateTablesIfNotExists()
 	web.Pages = htpl.Must(htpl.New("").Funcs(htpl.FuncMap{
 		"AllCategories": AllCategories,
 		"GetJokes":      GetJokes,
 		"ProposedJokes": ProposedJokes,
 		"DefaultTitle":  DefaultTitle}).ParseGlob("pages/*.html"))
-	web.DBName = "./jokes.db"
-	web.DBInit(&Categories{}, &Jokes{}, &Liked{}, &Proposed_jokes{})
-}
-
-type Joke struct {
-	Jokes
-
-	Liked    bool
-	Category *Category
-}
-
-/* FIXME: foreign key */
-type Jokes struct {
-	JokeID     uint64    `sql:"primary key not null"`
-	Joke       string    `sql:"not null"`
-	Likes      uint64    `sql:"not null"`
-	Date       time.Time `sql:"not null"`
-	CategoryID uint64    `sql:"not null"`
-}
-
-type Category struct {
-	Categories
-
-	Jokes   []*Joke
-	OrderBy string
-}
-type Categories struct {
-	CategoryID uint64 `sql:"primary key not null"`
-	Name       string `sql:"not null"`
-	Slug       string `sql:"unique not null"`
 }
 
 func DefaultTitle() string {
@@ -88,9 +86,8 @@ func (j *Joke) Title() string {
 
 func (cj *Joke) Next() *Joke {
 	j := &Joke{}
-	err := web.DB.QueryRow(`select JokeID, Joke, Likes, Date, CategoryID from Jokes
-where JokeID > ? and CategoryID = ?
-order by JokeID asc limit 1;`, cj.JokeID, cj.Category.CategoryID).Scan(&j.JokeID, &j.Joke, &j.Likes, &j.Date, &j.CategoryID)
+	err := DB.SelectOne(j, `select * from Jokes where JokeID > ? and CategoryID = ?
+						    order by JokeID asc limit 1;`, cj.JokeID, cj.Category.CategoryID)
 	if err != nil {
 		return nil
 	}
@@ -100,36 +97,13 @@ order by JokeID asc limit 1;`, cj.JokeID, cj.Category.CategoryID).Scan(&j.JokeID
 
 func (cj *Joke) Prev() *Joke {
 	j := &Joke{}
-	err := web.DB.QueryRow(`select JokeID, Joke, Likes, Date, CategoryID from Jokes
-where JokeID < ? and CategoryID = ?
-order by JokeID desc limit 1;`, cj.JokeID, cj.Category.CategoryID).Scan(&j.JokeID, &j.Joke, &j.Likes, &j.Date, &j.CategoryID)
+	err := DB.SelectOne(j, `select * from Jokes where JokeID < ? and CategoryID = ?
+							order by JokeID desc limit 1;`, cj.JokeID, cj.Category.CategoryID)
 	if err != nil {
 		return nil
 	}
 	j.Category = cj.Category
 	return j
-}
-
-func (j *Joke) WasLiked(r *http.Request) {
-	c, err := r.Cookie("uuid")
-	if err != nil {
-		return
-	}
-
-	u, err := uuid.Parse(c.Value)
-	if err != nil {
-		return
-	}
-	placeholder := 0
-	err = web.DB.QueryRow(`select JokeID from Liked where uuid=? and JokeID=?;`, u.Bytes(), j.JokeID).Scan(&placeholder)
-	if err != nil {
-		if err != sql.ErrNoRows {
-			log.Print(err)
-		}
-		return
-	}
-
-	j.Liked = true
 }
 
 func (c *Category) AbsUrl() string {
@@ -140,43 +114,25 @@ func (c *Category) Title() string {
 }
 
 func AllCategories() ([]*Category, error) {
-	rows, err := web.DB.Query(`select CategoryID, Name, Slug from Categories order by Name`)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
 	var categories []*Category
-	for rows.Next() {
-		var c Category
-		err := rows.Scan(&c.CategoryID, &c.Name, &c.Slug)
-		if err != nil {
-			return nil, err
-		}
-		categories = append(categories, &c)
-	}
-	err = rows.Err()
+	_, err := DB.Select(&categories, `select * from Categories order by name`)
 	if err != nil {
 		return nil, err
 	}
-
 	return categories, nil
 }
 
 func orderBy(by string) string {
 	switch by {
-	case "newer":
-		return " order by Date desc"
 	case "older":
 		return " order by Date asc"
 	default:
-		return " order by Likes desc"
+		return " order by Date desc"
 	}
 }
 
 func GetJokes(categoryID uint64, order string, limit uint) ([]*Joke, error) {
-	var rows *sql.Rows
 	var err error
-
 	var c *Category
 	if categoryID > 0 {
 		c, err = getCategoryByID(categoryID)
@@ -184,28 +140,20 @@ func GetJokes(categoryID uint64, order string, limit uint) ([]*Joke, error) {
 			return nil, err
 		}
 	}
-
 	l := ""
 	if limit > 0 {
 		l = " limit " + fmt.Sprint(limit)
 	}
-
+	var jokes []*Joke
 	if categoryID == 0 {
-		rows, err = web.DB.Query(`select JokeID, Joke, Likes, Date, CategoryID from Jokes ` + orderBy(order) + l + `;`)
+		_, err = DB.Select(&jokes, `select * from Jokes ` + orderBy(order) + l + `;`)
 	} else {
-		rows, err = web.DB.Query(`select JokeID, Joke, Likes, Date, CategoryID from Jokes where CategoryID=? `+orderBy(order)+l+`;`, categoryID)
+		_, err = DB.Select(&jokes, `select * from Jokes where CategoryID=? `+orderBy(order)+l+`;`, categoryID)
 	}
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var jokes []*Joke
-	for rows.Next() {
-		var j Joke
-		err := rows.Scan(&j.JokeID, &j.Joke, &j.Likes, &j.Date, &j.CategoryID)
-		if err != nil {
-			return nil, err
-		}
+	for _, j := range jokes {
 		if categoryID > 0 {
 			j.Category = c
 		} else {
@@ -214,66 +162,32 @@ func GetJokes(categoryID uint64, order string, limit uint) ([]*Joke, error) {
 				return nil, err
 			}
 		}
-		jokes = append(jokes, &j)
 	}
-	err = rows.Err()
-	if err != nil {
-		return nil, err
-	}
-
 	return jokes, nil
 }
 
 func ProposedJokes() ([]*Joke, error) {
-	rows, err := web.DB.Query(`select rowid, Joke from proposed_jokes;`)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
 	var jokes []*Joke
-	for rows.Next() {
-		var j Joke
-		err := rows.Scan(&j.JokeID, &j.Joke)
-		if err != nil {
-			return nil, err
-		}
-		jokes = append(jokes, &j)
-	}
-	err = rows.Err()
-	if err != nil {
-		return nil, err
-	}
-
-	return jokes, nil
+	_, err := DB.Select(&jokes, `select * from proposed_jokes;`)
+	return jokes, err
 }
 
 func getCategoryByID(id uint64) (*Category, error) {
-	c := &Category{}
-	err := web.DB.QueryRow(`select Name, Slug from Categories where CategoryID=?;`, id).Scan(&c.Name, &c.Slug)
-	if err != nil {
-		return nil, err
-	}
-	c.CategoryID = id
-	return c, nil
+	obj, err := DB.Get(Category{}, id)
+	return obj.(*Category), err
 }
-
 func getCategoryBySlug(slug string) (*Category, error) {
 	c := &Category{}
-	err := web.DB.QueryRow(`select CategoryID, Name from Categories where Slug=?;`, slug).Scan(&c.CategoryID, &c.Name)
-	if err != nil {
-		return nil, err
-	}
-	c.Slug = slug
-	return c, nil
+	err := DB.SelectOne(c, `select * from Categories where Slug=?;`, slug)
+	return c, err
 }
 
 func getJokeByID(id uint64) (*Joke, error) {
-	j := &Joke{}
-	err := web.DB.QueryRow(`select Joke, Likes, Date, CategoryID from Jokes where JokeID=?;`, id).Scan(&j.Joke, &j.Likes, &j.Date, &j.CategoryID)
+	obj, err := DB.Get(Joke{}, id)
 	if err != nil {
 		return nil, err
 	}
-	j.JokeID = id
+	j := obj.(*Joke)
 	j.Category, err = getCategoryByID(j.CategoryID)
 	return j, err
 }
@@ -290,13 +204,8 @@ func jokeHandler(w http.ResponseWriter, r *http.Request) *web.NetError {
 	}
 	j, err := getJokeByID(id)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return &web.NetError{404, err.Error()}
-		} else {
-			return &web.NetError{500, err.Error()}
-		}
+		return &web.NetError{404, err.Error()}
 	}
-	j.WasLiked(r)
 	return web.ExecuteTemplate(w, "joke-page.html", j)
 }
 
@@ -308,84 +217,19 @@ func categoryHandler(w http.ResponseWriter, r *http.Request) *web.NetError {
 	}
 	c, err := getCategoryBySlug(slug)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return &web.NetError{404, err.Error()}
-		} else {
-			return &web.NetError{500, err.Error()}
-		}
+		return &web.NetError{404, err.Error()}
 	}
 	switch r.URL.Query().Get("orderby") {
-	case "newer":
-		c.OrderBy = "newer"
 	case "older":
 		c.OrderBy = "older"
 	default:
-		c.OrderBy = "likes"
+		c.OrderBy = "newer"
 	}
 	c.Jokes, err = GetJokes(c.CategoryID, c.OrderBy, 0)
 	if err != nil {
 		return &web.NetError{500, err.Error()}
 	}
-	for _, j := range c.Jokes {
-		j.WasLiked(r)
-	}
 	return web.ExecuteTemplate(w, "category.html", c)
-}
-
-var countBeforePurge = 0
-
-func likeHandler(w http.ResponseWriter, r *http.Request) *web.NetError {
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		return &web.NetError{500, err.Error()}
-	}
-	bid, err := strconv.ParseUint(string(body), 10, 64)
-	if err != nil {
-		return &web.NetError{500, err.Error()}
-	}
-
-	var u uuid.UUID
-	c, err := r.Cookie("uuid")
-	if err != nil {
-		u = uuid.NewV4()
-		http.SetCookie(w, &http.Cookie{Name: "uuid", Value: u.String(), Expires: time.Now().Add(60 * 24 * time.Hour)})
-	} else {
-		u, err = uuid.Parse(c.Value)
-		if err != nil {
-			return &web.NetError{500, err.Error()}
-		}
-
-		placeholder := 0
-		err = web.DB.QueryRow(`SELECT JokeID FROM Liked WHERE UUID=? and JokeID=?;`, u.Bytes(), bid).Scan(&placeholder)
-		if err == nil {
-			/* already liked. Actually shouldn't happen. */
-			return nil
-		}
-		/* error */
-		if err != sql.ErrNoRows {
-			return &web.NetError{500, err.Error()}
-		}
-	}
-
-	countBeforePurge++
-	if countBeforePurge > 10000 {
-		_, err = web.DB.Exec(`Delete from liked where date < ?;`, time.Now().Add(-60*24*time.Hour).Unix())
-		if err != nil {
-			log.Print(err)
-		}
-		countBeforePurge = 0
-	}
-
-	_, err = web.DB.Exec(`UPDATE Jokes SET likes=likes+1 WHERE JokeID=?;`, bid)
-	if err != nil {
-		return &web.NetError{500, err.Error()}
-	}
-	_, err = web.DB.Exec(`INSERT INTO Liked(Uuid, JokeID, date) VALUES(?,?,?);`, u.Bytes(), bid, time.Now().Unix())
-	if err != nil {
-		return &web.NetError{500, err.Error()}
-	}
-
-	return nil
 }
 
 func staticHandler(w http.ResponseWriter, r *http.Request) *web.NetError {
@@ -402,16 +246,9 @@ func rootHandler(w http.ResponseWriter, r *http.Request) *web.NetError {
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 		return nil
 	case p == "/":
-		jokes, err := GetJokes(0, "newer", 20)
+		jokes, err := GetJokes(0, "newer", 100)
 		if err != nil {
-			if err == sql.ErrNoRows {
-				return &web.NetError{404, err.Error()}
-			} else {
-				return &web.NetError{500, err.Error()}
-			}
-		}
-		for _, j := range jokes {
-			j.WasLiked(r)
+			return &web.NetError{500, err.Error()}
 		}
 		return web.ExecuteTemplate(w, "index.html", jokes)
 	case path.Ext(p) == ".html":
@@ -426,7 +263,8 @@ func submitHandler(w http.ResponseWriter, r *http.Request) *web.NetError {
 		return web.ExecuteTemplate(w, "submit.html", nil)
 	} else if r.Method == "POST" {
 		r.ParseForm()
-		_, err := web.DB.Exec(`INSERT INTO proposed_jokes VALUES(?);`, r.PostForm.Get("joke-submit"))
+		j := &ProposedJoke{Joke: r.PostForm.Get("joke-submit")}
+		err := DB.Insert(j)
 		if err != nil {
 			return &web.NetError{500, err.Error()}
 		}
@@ -467,16 +305,12 @@ func adminHandler(w http.ResponseWriter, r *http.Request) *web.NetError {
 		var c uint64
 
 		if new := r.PostForm.Get("new-category"); new != "" {
-			res, err := web.DB.Exec(`INSERT INTO Categories(Name, Slug) Values(?,?);`, new, r.PostForm.Get("slug"))
+			nc := &Category{Name: new, Slug: r.PostForm.Get("slug")}
+			err := DB.Insert(nc)
 			if err != nil {
 				return &web.NetError{500, err.Error()}
 			}
-			c64, err := res.LastInsertId()
-			if err != nil {
-				return &web.NetError{500, err.Error()}
-			}
-			c = uint64(c64)
-
+			c = nc.CategoryID
 		} else {
 			c, err = strconv.ParseUint(r.PostForm.Get("categoryid"), 10, 64)
 			if err != nil {
@@ -484,7 +318,8 @@ func adminHandler(w http.ResponseWriter, r *http.Request) *web.NetError {
 			}
 		}
 
-		_, err = web.DB.Exec(`INSERT INTO Jokes(Joke,Likes,Date,CategoryID) VALUES(?,?,?,?);`, r.PostForm.Get("joke-submit"), 0, time.Now(), c)
+		j := &Joke{Joke: r.PostForm.Get("joke-submit"), Date: time.Now(), CategoryID: c}
+		err = DB.Insert(j)
 		if err != nil {
 			return &web.NetError{500, err.Error()}
 		}
@@ -492,7 +327,7 @@ func adminHandler(w http.ResponseWriter, r *http.Request) *web.NetError {
 		if err != nil {
 			return &web.NetError{500, err.Error()}
 		}
-		_, err = web.DB.Exec(`DELETE FROM proposed_jokes WHERE rowid=?;`, p)
+		_, err = DB.Delete(&ProposedJoke{JokeID: p})
 		if err != nil {
 			return &web.NetError{500, err.Error()}
 		}
@@ -515,7 +350,6 @@ func main() {
 	}
 	http.HandleFunc(PathJoke, web.ErrorHandler(jokeHandler))
 	http.HandleFunc(PathCategory, web.ErrorHandler(categoryHandler))
-	http.HandleFunc("/like", web.ErrorHandler(likeHandler))
 	http.HandleFunc(PathSubmit, web.ErrorHandler(submitHandler))
 	http.HandleFunc(PathAdmin, web.ErrorHandler(adminHandler))
 	http.HandleFunc("/sitemap.txt", web.ErrorHandler(sitemapHandler))

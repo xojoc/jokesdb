@@ -1,15 +1,6 @@
 {{template "header.html" .}}
-<h1>{{.Name}}</h1>
+<h1 id=categoryname>{{.Name}}</h1>
 <p id=order>
-    Order by:
-    {{if eq .OrderBy "likes"}}
-    votes
-    {{else}}
-    <a href="?orderby=likes">votes</a>
-    {{end}}
-
-     - 
-
     {{if eq .OrderBy "newer"}}
     newer
     {{else}}
