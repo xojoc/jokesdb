@@ -246,7 +246,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) *web.NetError {
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 		return nil
 	case p == "/":
-		jokes, err := GetJokes(0, "newer", 100)
+		jokes, err := GetJokes(0, "newer", 20)
 		if err != nil {
 			return &web.NetError{500, err.Error()}
 		}
