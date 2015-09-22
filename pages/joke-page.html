@@ -1,10 +1,10 @@
 {{template "header.html" .}}
 {{template "joke.html" .}}
 {{with .Prev}}
-<a rel=prev href="{{.AbsUrl}}" title="{{.Title}}">Previous joke</a>
+<a rel=prev href="{{.AbsUrl}}" title="{{.Title}}">Precedente</a>
 {{end}}
 {{with .Next}}
-<a rel=next href="{{.AbsUrl}}" title="{{.Title}}">Next joke</a>
+<a rel=next href="{{.AbsUrl}}" title="{{.Title}}">Successiva</a>
 {{end}}
 {{template "sidebar.html"}}
 {{template "footer.html"}}

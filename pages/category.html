@@ -2,17 +2,17 @@
 <h1 id=categoryname>{{.Name}}</h1>
 <p id=order>
     {{if eq .OrderBy "newer"}}
-    newer
+    recente
     {{else}}
-    <a href="?orderby=newer">newer</a>
+    <a href="?orderby=newer">recente</a>
     {{end}}
 
      - 
 
     {{if eq .OrderBy "older"}}
-    older
+    vecchio
     {{else}}
-    <a href="?orderby=older">older</a>
+    <a href="?orderby=older">vecchio</a>
     {{end}}
 </p>
 {{range .Jokes}}
