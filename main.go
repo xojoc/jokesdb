@@ -6,11 +6,11 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/xojoc/web"
+	"gopkg.in/gorp.v1"
 	htpl "html/template"
 	"log"
-	"mime"
-	"gopkg.in/gorp.v1"
 	"math/rand"
+	"mime"
 	"net/http"
 	"os"
 	"path"
@@ -40,12 +40,12 @@ type Category struct {
 	Slug       string `sql:"unique not null"`
 
 	Jokes   []*Joke `db:"-"`
-	OrderBy string `db:"-"`
+	OrderBy string  `db:"-"`
 }
 
 type ProposedJoke struct {
 	JokeID uint64
-	Joke string
+	Joke   string
 }
 
 func init() {
@@ -146,7 +146,7 @@ func GetJokes(categoryID uint64, order string, limit uint) ([]*Joke, error) {
 	}
 	var jokes []*Joke
 	if categoryID == 0 {
-		_, err = DB.Select(&jokes, `select * from Jokes ` + orderBy(order) + l + `;`)
+		_, err = DB.Select(&jokes, `select * from Jokes `+orderBy(order)+l+`;`)
 	} else {
 		_, err = DB.Select(&jokes, `select * from Jokes where CategoryID=? `+orderBy(order)+l+`;`, categoryID)
 	}
@@ -246,7 +246,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) *web.NetError {
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 		return nil
 	case p == "/":
-		jokes, err := GetJokes(0, "newer", 100)
+		jokes, err := GetJokes(0, "newer", 20)
 		if err != nil {
 			return &web.NetError{500, err.Error()}
 		}
