@@ -110,7 +110,7 @@ func (c *Category) AbsUrl() string {
 	return Domain + PathCategory + c.Slug
 }
 func (c *Category) Title() string {
-	return JokeString + c.Name + " - " + SiteTitle
+	return c.Name + " - " + SiteTitle
 }
 
 func AllCategories() ([]*Category, error) {
