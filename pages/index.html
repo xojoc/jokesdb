@@ -3,7 +3,7 @@
 {{range .}}
 <article class="barzelletta">
 <header>
-  <a rel=bookmark href="{{.AbsUrl}}" class=nav title="{{.Title}}">permalink</a> - <a class=nav href="{{.Category.AbsUrl}}" title="{{.Category.Name}}">{{.Category.Name}}</a>
+  <a class=nav href="{{.Category.AbsUrl}}" title="{{.Category.Name}}">{{.Category.Name}}</a> - <a rel=bookmark href="{{.AbsUrl}}" class=nav title="{{.Title}}">permalink</a>
 </header>
 <p>{{.Joke}}</p>
 </article>
