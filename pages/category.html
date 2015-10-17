@@ -16,7 +16,12 @@
     {{end}}
 </p>
 {{range .Jokes}}
-{{template "joke.html" .}}
+<article class="barzelletta">
+<header>
+  <a rel=bookmark class="nav" href="{{.AbsUrl}}" title="{{.Title}}">link</a>
+</header>
+<p>{{.Joke}}</p>
+</article>
 {{end}}
 {{template "sidebar.html"}}
 {{template "footer.html"}}
