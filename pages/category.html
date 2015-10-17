@@ -1,20 +1,5 @@
 {{template "header.html" .}}
 <h1 id=categoryname>{{.Name}} jokes</h1>
-<p id=order>
-    {{if eq .OrderBy "newer"}}
-    newer
-    {{else}}
-    <a href="?orderby=newer">newer</a>
-    {{end}}
-
-     - 
-
-    {{if eq .OrderBy "older"}}
-    older
-    {{else}}
-    <a href="?orderby=older">older</a>
-    {{end}}
-</p>
 {{range .Jokes}}
 <article class="barzelletta">
 <header>
