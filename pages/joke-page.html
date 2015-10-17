@@ -1,15 +1,15 @@
 {{template "header.html" .}}
 <article class="barzelletta">
 <header>
-  <a rel=bookmark class="nav" href="{{.AbsUrl}}" title="{{.Title}}">link</a> <a class=nav href="{{.Category.AbsUrl}}" title="{{.Category.Name}}">{{.Category.Name}}</a>
+  <a class=nav href="{{.Category.AbsUrl}}" title="{{.Category.Name}}">{{.Category.Name}}</a> - <a rel=bookmark class="nav" href="{{.AbsUrl}}" title="{{.Title}}">permalink</a> 
 </header>
 <p>{{.Joke}}</p>
 </article>
 {{with .Prev}}
-<a rel=prev href="{{.AbsUrl}}" title="{{.Title}}">Previous joke</a>
+<a rel=prev href="{{.AbsUrl}}" title="{{.Title}}">Previous</a>
 {{end}}
 {{with .Next}}
-<a rel=next href="{{.AbsUrl}}" title="{{.Title}}">Next joke</a>
+<a rel=next href="{{.AbsUrl}}" title="{{.Title}}">Next</a>
 {{end}}
 {{template "sidebar.html"}}
 {{template "footer.html"}}
