@@ -222,7 +222,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) *web.NetError {
 		if time.Now().Sub(lastRootTime) > 1 * time.Hour {
 			lastRootTime = time.Now()
 			var err error
-			rootJokes, err = GetJokes(0, true, 15)
+			rootJokes, err = GetJokes(0, true, 10)
 			if err != nil {
 				return &web.NetError{500, err.Error()}
 			}
