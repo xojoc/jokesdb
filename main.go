@@ -236,22 +236,6 @@ func rootHandler(w http.ResponseWriter, r *http.Request) *web.NetError {
 	}
 }
 
-func sitemapHandler(w http.ResponseWriter, r *http.Request) *web.NetError {
-	var pages []interface{}
-	jokes, err := GetJokes(0, false, 0)
-	if err != nil {
-		return &web.NetError{500, err.Error()}
-	}
-	categories, err := AllCategories()
-	if err != nil {
-		return &web.NetError{500, err.Error()}
-	}
-	pages = append(pages, jokes)
-	pages = append(pages, categories)
-	w.Header().Set("Content-Type", mime.TypeByExtension(path.Ext(r.URL.Path)))
-	return web.ExecuteTemplate(w, "sitemap.html", pages)
-}
-
 func main() {
 	p := ":8080"
 	if len(os.Args) > 1 {
@@ -259,7 +243,6 @@ func main() {
 	}
 	http.HandleFunc(PathJoke, web.ErrorHandler(jokeHandler))
 	http.HandleFunc(PathCategory, web.ErrorHandler(categoryHandler))
-	http.HandleFunc("/sitemap.txt", web.ErrorHandler(sitemapHandler))
 	http.Handle("/static/", http.FileServer(http.Dir(".")))
 	http.HandleFunc("/", web.ErrorHandler(rootHandler))
 	err := http.ListenAndServe(p, nil)
