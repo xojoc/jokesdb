@@ -1,8 +1,4 @@
 http://jojokes.pw/index.html
-{{range AllCategories}}
+{{range .}}
 {{.AbsUrl}}
 {{end}}
-{{range GetJokes 0 "" 0}}
-{{.AbsUrl}}
-{{end}}
-http://jojokes.pw/submit
