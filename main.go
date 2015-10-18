@@ -31,7 +31,7 @@ type Joke struct {
 	Date       time.Time
 	CategoryID uint64
 
-	Category *Category
+	Category *Category `db:"-"`
 }
 
 type Category struct {
@@ -39,8 +39,8 @@ type Category struct {
 	Name       string
 	Slug       string
 
-	Jokes   []*Joke
-	OrderBy string
+	Jokes   []*Joke `db:"-"`
+	OrderBy string  `db:"-"`
 }
 
 type ProposedJoke struct {
