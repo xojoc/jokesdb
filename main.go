@@ -8,10 +8,8 @@ import (
 	"gopkg.in/gorp.v1"
 	htpl "html/template"
 	"log"
-	"mime"
 	"net/http"
 	"os"
-	"path"
 	"strconv"
 	"time"
 )
