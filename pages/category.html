@@ -1,22 +1,12 @@
 {{template "header.html" .}}
 <h1 id=categoryname>Barzellette {{.Name}}</h1>
-<p id=order>
-    {{if eq .OrderBy "newer"}}
-    recente
-    {{else}}
-    <a href="?orderby=newer">recente</a>
-    {{end}}
-
-     - 
-
-    {{if eq .OrderBy "older"}}
-    vecchio
-    {{else}}
-    <a href="?orderby=older">vecchio</a>
-    {{end}}
-</p>
 {{range .Jokes}}
-{{template "joke.html" .}}
+<article class="barzelletta">
+<header>
+<a rel=bookmark class="nav" href="{{.AbsUrl}}" title="{{.Title}}">link</a>
+</header>
+<p>{{.Joke}}</p>
+</article>
 {{end}}
 {{template "sidebar.html"}}
 {{template "footer.html"}}

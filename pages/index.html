@@ -1,7 +1,12 @@
 {{template "header.html"}}
 <h1>Barzellette nuove</h1>
 {{range .}}
-{{template "joke.html" .}}
+<article class="barzelletta">
+<header>
+<a class=nav href="{{.Category.AbsUrl}}" title="{{.Category.Name}}">{{.Category.Name}}</a> - <a rel=bookmark class="nav" href="{{.AbsUrl}}" title="{{.Title}}">link</a>
+</header>
+<p>{{.Joke}}</p>
+</article>
 {{end}}
 {{template "sidebar.html"}}
 {{template "footer.html"}}
