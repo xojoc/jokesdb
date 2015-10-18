@@ -31,16 +31,16 @@ type Joke struct {
 	Date       time.Time
 	CategoryID uint64
 
-	Category *Category `db:"-"`
+	Category *Category
 }
 
 type Category struct {
-	CategoryID uint64 `sql:"primary key not null"`
-	Name       string `sql:"not null"`
-	Slug       string `sql:"unique not null"`
+	CategoryID uint64
+	Name       string
+	Slug       string
 
-	Jokes   []*Joke `db:"-"`
-	OrderBy string  `db:"-"`
+	Jokes   []*Joke
+	OrderBy string
 }
 
 type ProposedJoke struct {
