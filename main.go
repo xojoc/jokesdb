@@ -2,18 +2,14 @@
 package main
 
 import (
-	"crypto/sha512"
 	"database/sql"
 	"fmt"
 	"github.com/xojoc/web"
+	"gopkg.in/gorp.v1"
 	htpl "html/template"
 	"log"
-	"mime"
-	"gopkg.in/gorp.v1"
-	"math/rand"
 	"net/http"
 	"os"
-	"path"
 	"strconv"
 	"time"
 )
@@ -21,8 +17,6 @@ import (
 var (
 	DB     *gorp.DbMap
 	DBName string = "./jokes.db"
-	// use package-local rand source to avoid excessive locking
-	rng *rand.Rand
 )
 
 type Joke struct {
@@ -35,17 +29,11 @@ type Joke struct {
 }
 
 type Category struct {
-	CategoryID uint64 `sql:"primary key not null"`
-	Name       string `sql:"not null"`
-	Slug       string `sql:"unique not null"`
+	CategoryID uint64
+	Name       string
+	Slug       string
 
 	Jokes   []*Joke `db:"-"`
-	OrderBy string `db:"-"`
-}
-
-type ProposedJoke struct {
-	JokeID uint64
-	Joke string
 }
 
 func init() {
@@ -57,12 +45,9 @@ func init() {
 	DB = &gorp.DbMap{Db: db, Dialect: gorp.SqliteDialect{}}
 	DB.AddTableWithName(Category{}, "categories").SetKeys(true, "CategoryID")
 	DB.AddTableWithName(Joke{}, "jokes").SetKeys(true, "JokeID")
-	DB.AddTableWithName(ProposedJoke{}, "proposed_jokes").SetKeys(true, "JokeID")
 	DB.CreateTablesIfNotExists()
 	web.Pages = htpl.Must(htpl.New("").Funcs(htpl.FuncMap{
 		"AllCategories": AllCategories,
-		"GetJokes":      GetJokes,
-		"ProposedJokes": ProposedJokes,
 		"DefaultTitle":  DefaultTitle}).ParseGlob("pages/*.html"))
 }
 
@@ -122,16 +107,7 @@ func AllCategories() ([]*Category, error) {
 	return categories, nil
 }
 
-func orderBy(by string) string {
-	switch by {
-	case "older":
-		return " order by Date asc"
-	default:
-		return " order by Date desc"
-	}
-}
-
-func GetJokes(categoryID uint64, order string, limit uint) ([]*Joke, error) {
+func GetJokes(categoryID uint64, random bool, limit uint) ([]*Joke, error) {
 	var err error
 	var c *Category
 	if categoryID > 0 {
@@ -144,12 +120,17 @@ func GetJokes(categoryID uint64, order string, limit uint) ([]*Joke, error) {
 	if limit > 0 {
 		l = " limit " + fmt.Sprint(limit)
 	}
-	var jokes []*Joke
-	if categoryID == 0 {
-		_, err = DB.Select(&jokes, `select * from Jokes ` + orderBy(order) + l + `;`)
-	} else {
-		_, err = DB.Select(&jokes, `select * from Jokes where CategoryID=? `+orderBy(order)+l+`;`, categoryID)
+	order := ""
+	if random {
+		order = " order by random() ";
 	}
+	category := ""
+	if categoryID != 0 {
+		category = " where CategoryID=" + fmt.Sprint(categoryID) + " "
+	}
+	var jokes []*Joke
+
+	_, err = DB.Select(&jokes, `select * from Jokes`+category+order+l+`;`)
 	if err != nil {
 		return nil, err
 	}
@@ -164,12 +145,6 @@ func GetJokes(categoryID uint64, order string, limit uint) ([]*Joke, error) {
 		}
 	}
 	return jokes, nil
-}
-
-func ProposedJokes() ([]*Joke, error) {
-	var jokes []*Joke
-	_, err := DB.Select(&jokes, `select * from proposed_jokes;`)
-	return jokes, err
 }
 
 func getCategoryByID(id uint64) (*Category, error) {
@@ -206,7 +181,7 @@ func jokeHandler(w http.ResponseWriter, r *http.Request) *web.NetError {
 	if err != nil {
 		return &web.NetError{404, err.Error()}
 	}
-	return web.ExecuteTemplate(w, "joke-page.html", j)
+	return web.ExecuteTemplate(w, "joke.html", j)
 }
 
 func categoryHandler(w http.ResponseWriter, r *http.Request) *web.NetError {
@@ -219,13 +194,7 @@ func categoryHandler(w http.ResponseWriter, r *http.Request) *web.NetError {
 	if err != nil {
 		return &web.NetError{404, err.Error()}
 	}
-	switch r.URL.Query().Get("orderby") {
-	case "older":
-		c.OrderBy = "older"
-	default:
-		c.OrderBy = "newer"
-	}
-	c.Jokes, err = GetJokes(c.CategoryID, c.OrderBy, 0)
+	c.Jokes, err = GetJokes(c.CategoryID, false, 0)
 	if err != nil {
 		return &web.NetError{500, err.Error()}
 	}
@@ -233,11 +202,13 @@ func categoryHandler(w http.ResponseWriter, r *http.Request) *web.NetError {
 }
 
 func staticHandler(w http.ResponseWriter, r *http.Request) *web.NetError {
-	fmt.Print(r.URL.Path)
 	w.Header().Add("Cache-Control", "max-age=604800, public")
 	http.ServeFile(w, r, "."+r.URL.Path)
 	return nil
 }
+
+var lastRootTime time.Time
+var rootJokes []*Joke
 
 func rootHandler(w http.ResponseWriter, r *http.Request) *web.NetError {
 	p := r.URL.Path
@@ -246,101 +217,21 @@ func rootHandler(w http.ResponseWriter, r *http.Request) *web.NetError {
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 		return nil
 	case p == "/":
-		jokes, err := GetJokes(0, "newer", 20)
-		if err != nil {
-			return &web.NetError{500, err.Error()}
-		}
-		return web.ExecuteTemplate(w, "index.html", jokes)
-	case path.Ext(p) == ".html":
-		w.Header().Add("Cache-Control", "max-age=86400, public")
-		return web.ExecuteTemplate(w, p[1:], nil)
-	}
-	return &web.NetError{404, ""}
-}
-
-func submitHandler(w http.ResponseWriter, r *http.Request) *web.NetError {
-	if r.Method == "GET" {
-		return web.ExecuteTemplate(w, "submit.html", nil)
-	} else if r.Method == "POST" {
-		r.ParseForm()
-		j := &ProposedJoke{Joke: r.PostForm.Get("joke-submit")}
-		err := DB.Insert(j)
-		if err != nil {
-			return &web.NetError{500, err.Error()}
-		}
-		return web.ExecuteTemplate(w, "submit-success.html", nil)
-	} else {
-		return &web.NetError{501, "can't handle verb"}
-	}
-}
-
-func adminHandler(w http.ResponseWriter, r *http.Request) *web.NetError {
-	var passwd string
-	c, err := r.Cookie("password")
-	if err != nil {
-		if r.Method == "GET" {
-			return web.ExecuteTemplate(w, "password.html", nil)
-		} else if r.Method == "POST" {
-			r.ParseForm()
-			passwd = fmt.Sprintf("%x", sha512.Sum512([]byte(r.PostForm.Get("password"))))
-			http.SetCookie(w, &http.Cookie{Name: "password", Value: passwd, Expires: time.Now().Add(60 * 24 * time.Hour)})
-			http.Redirect(w, r, PathAdmin, http.StatusSeeOther)
-			return nil
-		} else {
-			return &web.NetError{501, "can't handle verb"}
-		}
-	} else {
-		passwd = c.Value
-	}
-
-	if passwd != Sha512passwd {
-		http.SetCookie(w, &http.Cookie{Name: "password", MaxAge: -1})
-		return nil
-	}
-
-	if r.Method == "GET" {
-		return web.ExecuteTemplate(w, "admin.html", nil)
-	} else if r.Method == "POST" {
-		r.ParseForm()
-		var c uint64
-
-		if new := r.PostForm.Get("new-category"); new != "" {
-			nc := &Category{Name: new, Slug: r.PostForm.Get("slug")}
-			err := DB.Insert(nc)
-			if err != nil {
-				return &web.NetError{500, err.Error()}
-			}
-			c = nc.CategoryID
-		} else {
-			c, err = strconv.ParseUint(r.PostForm.Get("categoryid"), 10, 64)
+		if time.Now().Sub(lastRootTime) > 1 * time.Hour {
+			lastRootTime = time.Now()
+			var err error
+			rootJokes, err = GetJokes(0, true, 10)
 			if err != nil {
 				return &web.NetError{500, err.Error()}
 			}
 		}
-
-		j := &Joke{Joke: r.PostForm.Get("joke-submit"), Date: time.Now(), CategoryID: c}
-		err = DB.Insert(j)
-		if err != nil {
-			return &web.NetError{500, err.Error()}
-		}
-		p, err := strconv.ParseUint(r.PostForm.Get("proposed"), 10, 64)
-		if err != nil {
-			return &web.NetError{500, err.Error()}
-		}
-		_, err = DB.Delete(&ProposedJoke{JokeID: p})
-		if err != nil {
-			return &web.NetError{500, err.Error()}
-		}
-		http.Redirect(w, r, PathAdmin, http.StatusSeeOther)
-	} else {
-		return &web.NetError{501, "can't handle verb"}
+		return web.ExecuteTemplate(w, "index.html", rootJokes)
+//	case path.Ext(p) == ".html":
+//		w.Header().Add("Cache-Control", "max-age=86400, public")
+//		return web.ExecuteTemplate(w, p[1:], nil)
+	default:
+		return &web.NetError{404, ""}
 	}
-	return nil
-}
-
-func sitemapHandler(w http.ResponseWriter, r *http.Request) *web.NetError {
-	w.Header().Set("Content-Type", mime.TypeByExtension(path.Ext(r.URL.Path)))
-	return web.ExecuteTemplate(w, "sitemap.html", nil)
 }
 
 func main() {
@@ -350,9 +241,6 @@ func main() {
 	}
 	http.HandleFunc(PathJoke, web.ErrorHandler(jokeHandler))
 	http.HandleFunc(PathCategory, web.ErrorHandler(categoryHandler))
-	http.HandleFunc(PathSubmit, web.ErrorHandler(submitHandler))
-	http.HandleFunc(PathAdmin, web.ErrorHandler(adminHandler))
-	http.HandleFunc("/sitemap.txt", web.ErrorHandler(sitemapHandler))
 	http.Handle("/static/", http.FileServer(http.Dir(".")))
 	http.HandleFunc("/", web.ErrorHandler(rootHandler))
 	err := http.ListenAndServe(p, nil)
