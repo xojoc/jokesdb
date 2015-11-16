@@ -123,6 +123,8 @@ func GetJokes(categoryID uint64, random bool, limit uint) ([]*Joke, error) {
 	order := ""
 	if random {
 		order = " order by random() ";
+	} else {
+		order = " order by JokeId desc ";
 	}
 	category := ""
 	if categoryID != 0 {
