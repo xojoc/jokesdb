@@ -17,7 +17,7 @@ h2 {
     font-size: 30px;
 }
 .nav {
-    color: green;
+    color: black;
     font-weight: 700;
     text-decoration: none;
 }
@@ -34,11 +34,6 @@ a[rel~="next"] {
 }
 #sidebar a {
     font-size: 26px;
-}
-#order a {
-    color: brown;
-    font-weight: 700;
-    text-decoration: none;
 }
 .promotion {
     color: brown;
