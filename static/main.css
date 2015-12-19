@@ -43,7 +43,7 @@ a[rel~="next"] {
 }
 @media (max-width: 604px) {
     #skiptomenu {
-        font-size: 20px;
+        font-size: 24px;
     }
     #logo {
         padding-top: 10px;
