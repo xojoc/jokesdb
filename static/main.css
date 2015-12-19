@@ -1,8 +1,7 @@
 * { margin: 0; }
-/* html, body {height: 100%;} */
 body {
     font-family: sans-serif;
-    font-size: 16px;
+    font-size: 24px;
     margin-left: 3%;
     margin-right: 3%;
     background-color: #fafffa;
@@ -14,20 +13,8 @@ h1 {
 h2 {
     font-size: 18px;
 }
-img {
-    max-width: 100%;
-}
 #logo a {
     font-size: 30px;
-}
-/*
-#submit {
-    padding-top: 10px;
-}
-*/
-#order {
-    font-size: 20px;
-    margin-bottom: 10px;
 }
 .nav {
     color: green;
@@ -75,9 +62,6 @@ a[rel~="next"] {
     #ads {
         padding-top: 15px;
     }
-    .heart {
-        font-size: 40px !important;
-    }
 }
 @media (min-width: 605px) {
     #header {
@@ -114,7 +98,7 @@ a[rel~="next"] {
     padding-bottom: 20px;
 }
 .barzelletta p {
-    font-size: 18px;
+    font-size: 24px;
     font-weight: 100;
     white-space: pre-line;
     background-color: #ddd;
@@ -124,17 +108,4 @@ a[rel~="next"] {
 #sidebar li {
     list-style-type: none;
     padding-top: 5px;
-}
-.heart {
-    font-size: 23px;
-    cursor: pointer;
-    vertical-align: middle;
-    margin-right: 10px;
-}
-.pulse {
-    color: red;
-}
-.linksymbol {
-    width: 15px;
-    margin-right: 10px;
 }
