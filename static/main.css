@@ -93,7 +93,7 @@ a[rel~="next"] {
 }
 .barzelletta p {
     font-size: 22px;
-    white-space: pre-line;
+    white-space: pre-wrap;
     background-color: #ddd;
     border-radius: 20px;
     padding: 10px;
