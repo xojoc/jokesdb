@@ -4,14 +4,16 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"github.com/xojoc/web"
-	"gopkg.in/gorp.v1"
 	htpl "html/template"
 	"log"
 	"net/http"
 	"os"
+	"path"
 	"strconv"
 	"time"
+
+	"github.com/xojoc/web"
+	"gopkg.in/gorp.v1"
 )
 
 var (
@@ -33,7 +35,7 @@ type Category struct {
 	Name       string
 	Slug       string
 
-	Jokes   []*Joke `db:"-"`
+	Jokes []*Joke `db:"-"`
 }
 
 func init() {
@@ -122,9 +124,9 @@ func GetJokes(categoryID uint64, random bool, limit uint) ([]*Joke, error) {
 	}
 	order := ""
 	if random {
-		order = " order by random() ";
+		order = " order by random() "
 	} else {
-		order = " order by JokeId desc ";
+		order = " order by JokeId desc "
 	}
 	category := ""
 	if categoryID != 0 {
@@ -219,7 +221,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) *web.NetError {
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 		return nil
 	case p == "/":
-		if time.Now().Sub(lastRootTime) > 1 * time.Hour {
+		if time.Now().Sub(lastRootTime) > 1*time.Hour {
 			lastRootTime = time.Now()
 			var err error
 			rootJokes, err = GetJokes(0, true, 10)
@@ -228,9 +230,9 @@ func rootHandler(w http.ResponseWriter, r *http.Request) *web.NetError {
 			}
 		}
 		return web.ExecuteTemplate(w, "index.html", rootJokes)
-//	case path.Ext(p) == ".html":
-//		w.Header().Add("Cache-Control", "max-age=86400, public")
-//		return web.ExecuteTemplate(w, p[1:], nil)
+	case path.Ext(p) == ".html":
+		w.Header().Add("Cache-Control", "max-age=86400, public")
+		return web.ExecuteTemplate(w, p[1:], nil)
 	default:
 		return &web.NetError{404, ""}
 	}
