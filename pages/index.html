@@ -1,9 +1,9 @@
 {{template "header.html"}}
-<h1>Random jokes</h1>
+<h1>Jokes of the day</h1>
 {{range .}}
 <article class="barzelletta">
 <header>
-  <a class=nav href="{{.Category.AbsUrl}}" title="{{.Category.Name}}">{{.Category.Name}}</a> - <a rel=bookmark href="{{.AbsUrl}}" class=nav title="{{.Title}}">{{.JokeID}}</a>
+  <a class=nav href="{{.Category.AbsUrl}}">{{.Category.Name}}</a> - <a rel=bookmark href="{{.AbsUrl}}" class=nav title="{{.Title}}">{{.JokeID}}</a>
 </header>
 <p>{{.Joke}}</p>
 </article>
