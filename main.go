@@ -14,6 +14,8 @@ import (
 
 	"github.com/xojoc/web"
 	"gopkg.in/gorp.v1"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var (
