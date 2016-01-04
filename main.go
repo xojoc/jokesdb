@@ -52,6 +52,7 @@ func init() {
 	DB.CreateTablesIfNotExists()
 	web.Pages = htpl.Must(htpl.New("").Funcs(htpl.FuncMap{
 		"AllCategories": AllCategories,
+		"GetJokes":      GetJokes,
 		"DefaultTitle":  DefaultTitle}).ParseGlob("pages/*.html"))
 }
 
@@ -235,6 +236,13 @@ func rootHandler(w http.ResponseWriter, r *http.Request) *web.NetError {
 	case path.Ext(p) == ".html":
 		w.Header().Add("Cache-Control", "max-age=86400, public")
 		return web.ExecuteTemplate(w, p[1:], nil)
+	case p == "/robots.txt":
+		w.Header().Add("Cache-Control", "max-age=86400, public")
+		http.ServeFile(w, r, "static/robots.txt")
+		return nil
+	case p == "/sitemap.txt":
+		w.Header().Add("Cache-Control", "max-age=86400, public")
+		return web.ExecuteTemplate(w, "sitemap.html", nil)
 	default:
 		return &web.NetError{404, ""}
 	}
