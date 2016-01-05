@@ -60,7 +60,7 @@ a[rel~="next"] {
 }
 @media (min-width: 605px) {
     #header {
-        padding-bottom: 35px;
+        padding-bottom: 70px;
     }
     #logo {
         float: left;
