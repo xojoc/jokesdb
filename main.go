@@ -26,6 +26,7 @@ var (
 type Joke struct {
 	JokeID     uint64
 	Joke       string
+	Date       time.Time
 	CategoryID uint64
 
 	Category *Category `db:"-"`
