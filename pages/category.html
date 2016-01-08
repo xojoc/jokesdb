@@ -1,5 +1,17 @@
 {{template "header.html" .}}
+
+{{if eq .Slug "lawyer"}}
+<h1 id=categoryname><a href="https://en.wikipedia.org/wiki/Lawyer_joke" title="What are lawyer jokes?" class=nav>{{.Name}}</a> jokes</h1>
+{{else if eq .Slug "little-johnny"}}
+<h1 id=categoryname><a href="https://en.wikipedia.org/wiki/Little_Johnny" title="What are Little Johnny jokes?" class=nav>{{.Name}}</a> jokes</h1>
+{{else if eq .Slug "black-humor"}}
+<h1 id=categoryname><a href="https://en.wikipedia.org/wiki/Black_comedy" class=nav>{{.Name}}</a> jokes</h1>
+{{else if eq .Slug "yo-mama"}}
+<h1 id=categoryname><a href="https://en.wikipedia.org/wiki/Maternal_insult" title="What are Yo Mama jokes?" class=nav>{{.Name}}</a> jokes</h1>
+{{else}}
 <h1 id=categoryname>{{.Name}} jokes</h1>
+{{end}}
+
 {{range .Jokes}}
 <article class="barzelletta">
 <header>
