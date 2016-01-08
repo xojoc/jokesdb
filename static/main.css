@@ -26,6 +26,7 @@ a[rel~="prev"] {
     color: brown;
     font-weight: 700;
     text-decoration: none;
+    margin-bottom: 10px;
 }
 a[rel~="next"] {
     color: brown;
