@@ -26,13 +26,14 @@ a[rel~="prev"] {
     color: brown;
     font-weight: 700;
     text-decoration: none;
-    margin-bottom: 10px;
+    margin-bottom: 30px;
 }
 a[rel~="next"] {
     color: brown;
     font-weight: 700;
     text-decoration: none;
     float: right;
+    margin-bottom: 30px;
 }
 #sidebar a {
     font-size: 26px;
