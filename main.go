@@ -123,7 +123,7 @@ func GetJokes(categoryID uint64, random bool, limit uint) ([]*Joke, error) {
 	if limit > 0 {
 		l = " limit " + fmt.Sprint(limit)
 	}
-	order := ""
+	order := " order by JokeId desc "
 	if random {
 		order = " order by random() "
 	}
