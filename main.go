@@ -4,14 +4,17 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"github.com/xojoc/web"
-	"gopkg.in/gorp.v1"
 	htpl "html/template"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
+
+	_ "github.com/mattn/go-sqlite3"
+
+	"github.com/xojoc/web"
+	"gopkg.in/gorp.v1"
 )
 
 var (
@@ -33,7 +36,7 @@ type Category struct {
 	Name       string
 	Slug       string
 
-	Jokes   []*Joke `db:"-"`
+	Jokes []*Joke `db:"-"`
 }
 
 func init() {
@@ -66,7 +69,7 @@ func (j *Joke) AbsUrl() string {
 	return Domain + PathJoke + strconv.FormatUint(j.JokeID, 10)
 }
 func (j *Joke) Title() string {
-	return JokeString + ": " + string([]rune(j.Joke)[:min(15, len(j.Joke))]) + "..." + " | " + SiteTitle
+	return string([]rune(j.Joke)[:min(20, len(j.Joke))]) + "..." + " | " + SiteTitle
 }
 
 func (cj *Joke) Next() *Joke {
@@ -122,7 +125,7 @@ func GetJokes(categoryID uint64, random bool, limit uint) ([]*Joke, error) {
 	}
 	order := ""
 	if random {
-		order = " order by random() ";
+		order = " order by random() "
 	}
 	category := ""
 	if categoryID != 0 {
@@ -217,7 +220,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) *web.NetError {
 		http.Redirect(w, r, "/", http.StatusMovedPermanently)
 		return nil
 	case p == "/":
-		if time.Now().Sub(lastRootTime) > 1 * time.Hour {
+		if time.Now().Sub(lastRootTime) > 1*time.Hour {
 			lastRootTime = time.Now()
 			var err error
 			rootJokes, err = GetJokes(0, true, 10)
@@ -226,9 +229,9 @@ func rootHandler(w http.ResponseWriter, r *http.Request) *web.NetError {
 			}
 		}
 		return web.ExecuteTemplate(w, "index.html", rootJokes)
-//	case path.Ext(p) == ".html":
-//		w.Header().Add("Cache-Control", "max-age=86400, public")
-//		return web.ExecuteTemplate(w, p[1:], nil)
+		//	case path.Ext(p) == ".html":
+		//		w.Header().Add("Cache-Control", "max-age=86400, public")
+		//		return web.ExecuteTemplate(w, p[1:], nil)
 	default:
 		return &web.NetError{404, ""}
 	}

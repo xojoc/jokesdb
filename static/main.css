@@ -2,7 +2,7 @@
 /* html, body {height: 100%;} */
 body {
     font-family: sans-serif;
-    font-size: 16px;
+    font-size: 24px;
     margin-left: 3%;
     margin-right: 3%;
     background-color: #fafffa;
@@ -14,23 +14,11 @@ h1 {
 h2 {
     font-size: 18px;
 }
-img {
-    max-width: 100%;
-}
 #logo a {
     font-size: 30px;
 }
-/*
-#submit {
-    padding-top: 10px;
-}
-*/
-#order {
-    font-size: 20px;
-    margin-bottom: 10px;
-}
 .nav {
-    color: green;
+    color: #2A396E;
     font-weight: 700;
     text-decoration: none;
 }
@@ -46,22 +34,17 @@ a[rel~="next"] {
     float: right;
 }
 #sidebar a {
-    font-size: 18px;
-}
-#order a {
-    color: brown;
-    font-weight: 700;
-    text-decoration: none;
+    font-size: 26px;
 }
 .promotion {
     color: brown;
-    font-size: 20px !important;
+    font-size: 24px !important;
     font-weight: 700;
     text-decoration: none;
 }
 @media (max-width: 604px) {
     #skiptomenu {
-        font-size: 20px;
+        font-size: 24px;
     }
     #logo {
         padding-top: 10px;
@@ -75,13 +58,10 @@ a[rel~="next"] {
     #ads {
         padding-top: 15px;
     }
-    .heart {
-        font-size: 40px !important;
-    }
 }
 @media (min-width: 605px) {
     #header {
-        padding-bottom: 35px;
+        padding-bottom: 70px;
     }
     #logo {
         float: left;
@@ -114,9 +94,9 @@ a[rel~="next"] {
     padding-bottom: 20px;
 }
 .barzelletta p {
-    font-size: 18px;
+    font-size: 22px;
     font-weight: 100;
-    white-space: pre-line;
+    white-space: pre-wrap;
     background-color: #ddd;
     border-radius: 20px;
     padding: 10px;
@@ -124,17 +104,4 @@ a[rel~="next"] {
 #sidebar li {
     list-style-type: none;
     padding-top: 5px;
-}
-.heart {
-    font-size: 23px;
-    cursor: pointer;
-    vertical-align: middle;
-    margin-right: 10px;
-}
-.pulse {
-    color: red;
-}
-.linksymbol {
-    width: 15px;
-    margin-right: 10px;
 }

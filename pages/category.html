@@ -1,5 +1,13 @@
 {{template "header.html" .}}
+
+{{if eq .Slug "pierino"}}
+<h1 id=categoryname>Barzellette su <a href="https://it.wikipedia.org/wiki/Pierino_%28personaggio%29" class=nav>{{.Name}}</a></h1>
+{{else if eq .Slug "umorismo-nero"}}
+<h1 id=categoryname><a href="https://it.wikipedia.org/wiki/Umorismo_nero" class=nav>{{.Name}}</a></h1>
+{{else}}
 <h1 id=categoryname>Barzellette {{.Name}}</h1>
+{{end}}
+
 {{range .Jokes}}
 <article class="barzelletta">
 <header>
