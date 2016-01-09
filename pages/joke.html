@@ -1,7 +1,7 @@
 {{template "header.html" .}}
 <article class="barzelletta">
 <header>
-  <a class=nav href="{{.Category.AbsUrl}}" title="{{.Category.Name}}">{{.Category.Name}}</a>
+  <a class=nav href="{{.Category.AbsUrl}}">{{.Category.Name}} jokes</a>
 </header>
 <p>{{.Joke}}</p>
 </article>
@@ -13,7 +13,7 @@
 {{end}}
 </main>
 
-<div id="disqus_thread"></div>
+<div id="disqus_thread">
 <script>
   var disqus_config = function () {
     this.page.url = {{.AbsUrl}};
@@ -27,6 +27,7 @@
         s.setAttribute('data-timestamp', +new Date());
         (d.head || d.body).appendChild(s);
   })();
-</script> <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+</script>
+</div>
 
 {{template "footer.html"}}
