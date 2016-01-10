@@ -22,6 +22,19 @@ h2 {
     font-weight: 700;
     text-decoration: none;
 }
+.prev {
+    color: brown;
+    font-weight: 700;
+    text-decoration: none;
+    margin-bottom: 30px;
+}
+.next {
+    color: brown;
+    font-weight: 700;
+    text-decoration: none;
+    float: right;
+    margin-bottom: 30px;
+}
 a[rel~="prev"] {
     color: brown;
     font-weight: 700;
