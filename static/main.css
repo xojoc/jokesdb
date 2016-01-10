@@ -16,6 +16,9 @@ h2 {
 #logo a {
     font-size: 30px;
 }
+header {
+    padding-top: 10px;
+}
 .nav {
     color: #2A396E;
     font-weight: 700;
