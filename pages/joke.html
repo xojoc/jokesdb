@@ -1,33 +1,62 @@
-{{template "header.html" .}}
-<article class="barzelletta">
-<header>
-  <a class=nav href="{{.Category.AbsUrl}}">{{.Category.Name}} jokes</a>
-</header>
-<p>{{.Joke}}</p>
-</article>
-{{with .Prev}}
-<a href="{{.AbsUrl}}" title="{{.Title}}">Previous</a>
-{{end}}
-{{with .Next}}
-<a href="{{.AbsUrl}}" title="{{.Title}}">Next</a>
-{{end}}
-</main>
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset=utf-8>
+    <title>{{.Title}}</title>
+    <meta name=viewport content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/static/main.css" type="text/css">
+    <link rel="shortcut icon" href="/static/favicon.ico" />
+  </head>
+  <body>
+    <header id="header">
+      <h1 id=logo><a href="/" title="{{DefaultTitle}}" class="nav">JoJokes :)</a></h1>
+      <div id=share>
+        <a href="https://www.google.com/+JojokesPwJokes" title="Follow @jojokes on Google+"><img src="/static/google+.png" alt="Google+ logo"/></a>
+        <a href="http://jojokes-smile.tumblr.com/" class=nav>Blog</a> - 
+        <a href="https://disqus.com/home/forums/jojokes/" class=nav>Forum</a>
+      </div>
+      <aside id="ads">
+        <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+        <!-- JoJokes top small -->
+        <ins class="adsbygoogle"
+             style="display:inline-block;width:320px;height:100px"
+             data-ad-client="ca-pub-2838559583130931"
+             data-ad-slot="8860345000"></ins>
+        <script>
+          (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+      </aside>
+    </header>
 
-<div id="disqus_thread">
-<script>
-  var disqus_config = function () {
-    this.page.url = {{.AbsUrl}};
-    this.page.identifier = {{.JokeID}};
-  };
-    (function() {  // DON'T EDIT BELOW THIS LINE
+    <article class="barzelletta">
+      <header>
+        <a class=nav href="{{.Category.AbsUrl}}">{{.Category.Name}} jokes</a>
+      </header>
+      <p>{{.Joke}}</p>
+    </article>
+    {{with .Prev}}
+    <a href="{{.AbsUrl}}" title="{{.Title}}">Previous</a>
+    {{end}}
+    {{with .Next}}
+    <a href="{{.AbsUrl}}" title="{{.Title}}">Next</a>
+    {{end}}
+
+    <div id="disqus_thread">
+      <script>
+        var disqus_config = function () {
+        this.page.url = {{.AbsUrl}};
+        this.page.identifier = {{.JokeID}};
+        };
+        (function() {  // DON'T EDIT BELOW THIS LINE
         var d = document, s = d.createElement('script');
         
         s.src = '//jojokes.disqus.com/embed.js';
         
         s.setAttribute('data-timestamp', +new Date());
         (d.head || d.body).appendChild(s);
-  })();
-</script>
-</div>
+        })();
+      </script>
+    </div>
+  </body>
+</html>
 
-{{template "footer.html"}}
