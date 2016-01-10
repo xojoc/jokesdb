@@ -35,10 +35,10 @@
       <p>{{.Joke}}</p>
     </article>
     {{with .Prev}}
-    <a href="{{.AbsUrl}}" title="{{.Title}}">Previous</a>
+    <a href="{{.AbsUrl}}" title="{{.Title}}" class=prev>Previous</a>
     {{end}}
     {{with .Next}}
-    <a href="{{.AbsUrl}}" title="{{.Title}}">Next</a>
+    <a href="{{.AbsUrl}}" title="{{.Title}}" class=next>Next</a>
     {{end}}
 
     <div id="disqus_thread">
