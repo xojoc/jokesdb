@@ -4,33 +4,17 @@
     <meta charset=utf-8>
     <title>{{.Title}}</title>
     <meta name=viewport content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="/static/main.css" type="text/css">
+    <link rel="stylesheet" href="/static/main.css?etag=1" type="text/css">
     <link rel="shortcut icon" href="/static/favicon.ico" />
   </head>
   <body>
     <header id="header">
-      <h1 id=logo><a href="/" title="{{DefaultTitle}}" class="nav" rel=home>JoJokes :)</a></h1>
-      <div id=share>
-        <a href="https://www.google.com/+JojokesPwJokes" title="Follow @jojokes on Google+"><img src="/static/google+.png" alt="Google+ logo"/></a>
-        <a href="http://jojokes-smile.tumblr.com/" class=nav>Blog</a> - 
-        <a href="https://disqus.com/home/forums/jojokes/" class=nav>Forum</a>
-      </div>
-      <aside id="ads">
-        <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-        <!-- JoJokes top small -->
-        <ins class="adsbygoogle"
-             style="display:inline-block;width:320px;height:100px"
-             data-ad-client="ca-pub-2838559583130931"
-             data-ad-slot="8860345000"></ins>
-        <script>
-          (adsbygoogle = window.adsbygoogle || []).push({});
-        </script>
-      </aside>
+      <h1 id=logo><a href="/" rel=home>JoJokes :)</a></h1>
     </header>
 
-    <article class="barzelletta">
+    <article class=joke>
       <header>
-        <a class=nav href="{{.Category.AbsUrl}}" rel=tag>{{.Category.Name}} jokes</a>
+        <a href="{{.Category.AbsUrl}}" rel=tag>{{.Category.Name}} jokes</a>
       </header>
       <p>{{.Joke}}</p>
     </article>

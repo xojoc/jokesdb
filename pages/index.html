@@ -1,12 +1,22 @@
-{{template "header.html"}}
-<h1>Jokes of the day 😂</h1>
-{{range .}}
-<article class="barzelletta">
-<header>
-  <a class=nav href="{{.Category.AbsUrl}}">{{.Category.Name}}</a> - <a rel=bookmark href="{{.AbsUrl}}" class=nav title="{{.Title}}">{{.JokeID}}</a>
-</header>
-<p>{{.Joke}}</p>
-</article>
-{{end}}
-{{template "sidebar.html"}}
-{{template "footer.html"}}
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset=utf-8>
+    <title>JoJokes :)</title>
+    <meta name=viewport content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/static/main.css?etag=1" type="text/css">
+    <link rel="shortcut icon" href="/static/favicon.ico" />
+  </head>
+  <body>
+    <header id=header>
+      <h1 id=logo><a href="/" rel=home>JoJokes :)</a></h1>
+    </header>
+    <nav id=categories>
+      <ul>
+        {{range AllCategories}}
+        <li><a href="{{.AbsUrl}}">{{.Name}}</a></li>
+        {{end}}
+      </ul>
+    </nav>
+  </body>
+</html>
