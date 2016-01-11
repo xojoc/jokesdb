@@ -1,12 +1,23 @@
-{{template "header.html"}}
-<h1>Barzellette del giorno 😂</h1>
-{{range .}}
-<article class="barzelletta">
-<header>
-<a class=nav href="{{.Category.AbsUrl}}" title="{{.Category.Name}}">{{.Category.Name}}</a> - <a rel=bookmark class="nav" href="{{.AbsUrl}}" title="{{.Title}}">{{.JokeID}}</a>
-</header>
-<p>{{.Joke}}</p>
-</article>
-{{end}}
-{{template "sidebar.html"}}
-{{template "footer.html"}}
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset=utf-8>
+    <title>BarzeDette :)</title>
+    <meta name=viewport content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/static/main.css?etag=1" type="text/css">
+    <link rel="shortcut icon" href="/static/favicon.ico" />
+  </head>
+  <body>
+    <header id="header">
+      <h1 id=logo><a href="/" rel=home class=nav>BarzeDette :)</a></h1>
+    </header>
+    <h1>Categorie 😂😎</h1>
+    <nav id=categories>
+      <ul>
+        {{range AllCategories}}
+        <li><a class="nav" href="{{.AbsUrl}}">{{.Name}}</a></li>
+        {{end}}
+      </ul>
+    </nav>
+  </body>
+</html>

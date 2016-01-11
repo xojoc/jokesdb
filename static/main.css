@@ -1,7 +1,6 @@
 * { margin: 0; }
 /* html, body {height: 100%;} */
 body {
-    font-family: sans-serif;
     font-size: 24px;
     margin-left: 3%;
     margin-right: 3%;
@@ -15,7 +14,7 @@ h2 {
     font-size: 18px;
 }
 #logo a {
-    font-size: 30px;
+    font-size: 50px;
 }
 .nav {
     color: #2A396E;
@@ -26,30 +25,24 @@ h2 {
     color: brown;
     font-weight: 700;
     text-decoration: none;
-    margin-bottom: 30px;
+    margin-bottom: 50px;
 }
 .next {
     color: brown;
     font-weight: 700;
     text-decoration: none;
     float: right;
-    margin-bottom: 30px;
+    margin-bottom: 50px;
 }
-a[rel~="prev"] {
-    color: brown;
-    font-weight: 700;
-    text-decoration: none;
-    margin-bottom: 30px;
+#categories {
+    font-size: 40px;
+    text-align: center;
 }
-a[rel~="next"] {
-    color: brown;
-    font-weight: 700;
-    text-decoration: none;
-    float: right;
-    margin-bottom: 30px;
+#categories ul {
+    list-style-type: none;
 }
-#sidebar a {
-    font-size: 26px;
+#categories il {
+    display: inline;
 }
 .promotion {
     color: brown;
@@ -57,66 +50,21 @@ a[rel~="next"] {
     font-weight: 700;
     text-decoration: none;
 }
-@media (max-width: 604px) {
-    #skiptomenu {
-        font-size: 24px;
-    }
-    #logo {
-        padding-top: 10px;
-    }
-    #submit {
-        padding-top: 10px;
-    }
-    #share {
-        padding-top: 10px;
-    }
-    #ads {
-        padding-top: 15px;
-    }
-}
-@media (min-width: 605px) {
-    #header {
-        padding-bottom: 70px;
-    }
-    #logo {
-        float: left;
-    }
-
-    #ads {
-        float: right;
-        padding-right: 30px;
-    }
-    #submit {
-        float: right;
-    }
-    #share {
-        float: right;
-        padding-right: 15px;
-    }
-    main {
-        float: left;
-        width: 64%;
-    }
-    #sidebar {
-        padding-top: 50px;
-        margin-left: 64%;
-    }
-    #skiptomenu {
-        visibility: hidden;
-    }
-}
 .barzelletta {
     padding-bottom: 20px;
 }
 .barzelletta p {
-    font-size: 22px;
-    font-weight: 100;
+    font-size: 24px;
     white-space: pre-wrap;
     background-color: #ddd;
     border-radius: 20px;
     padding: 10px;
 }
-#sidebar li {
-    list-style-type: none;
-    padding-top: 5px;
+footer {
+    margin-bottom: 10px;
+}
+#top {
+    position: absolute;
+    right: 4%;
+    font-size: 50px;
 }
