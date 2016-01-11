@@ -1,5 +1,4 @@
 * { margin: 0; }
-/* html, body {height: 100%;} */
 body {
     font-size: 24px;
     margin-left: 3%;
@@ -26,6 +25,7 @@ h2 {
     font-weight: 700;
     text-decoration: none;
     margin-bottom: 50px;
+    float: left;
 }
 .next {
     color: brown;
