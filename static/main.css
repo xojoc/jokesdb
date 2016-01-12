@@ -48,13 +48,9 @@ a {
 }
 #categories {
     font-size: 30px;
-    text-align: center;
 }
 #categories ul {
     list-style-type: none;
-}
-#categories il {
-    display: inline;
 }
 .joke {
     padding-bottom: 20px;
