@@ -42,12 +42,12 @@ a {
 }
 .promotion {
     color: brown;
-/*    font-size: 24px !important; */
     font-weight: 700;
     text-decoration: none;
 }
 #categories {
     font-size: 30px;
+    margin-bottom: 30px;
 }
 #categories ul {
     list-style-type: none;
