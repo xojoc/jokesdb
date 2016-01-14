@@ -73,3 +73,13 @@ footer ul {
     right: 4%;
     font-size: 50px;
 }
+.more {
+    /*   float: right; */
+    margin-bottom: 40px;
+}
+.more ul {
+    padding-left: 0;
+}
+.more li {
+    list-style-type: none;
+}
