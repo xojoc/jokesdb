@@ -70,3 +70,12 @@ footer {
     right: 4%;
     font-size: 50px;
 }
+#about {
+    margin: 25px auto;
+    font-size: 24px;
+    white-space: pre-wrap;
+    background-color: #ddd;
+    border-radius: 20px;
+    padding: 10px;
+    max-width: 600px;
+}
