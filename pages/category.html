@@ -4,23 +4,23 @@
     <meta charset=utf-8>
     <title>{{.Title}}</title>
     <meta name=viewport content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="/static/main.css?etag=1" type="text/css">
+    <link rel="stylesheet" href="/static/main.css?etag=2" type="text/css">
     <link rel="shortcut icon" href="/static/favicon.ico" />
   </head>
   <body>
     <header id="header">
-      <h1 id=logo><a href="/" rel=home class=nav>BarzeDette :)</a></h1>
+      <h1 id=logo><a href="/" rel=home>BarzeDette :)</a></h1>
     </header>
     <main>
       
       {{if eq .Slug "pierino"}}
-      <h1 id=categoryname>Barzellette su <a href="https://it.wikipedia.org/wiki/Pierino_%28personaggio%29" class=nav>{{.Name}}</a></h1>
+      <h1 id=categoryname>Barzellette su <a href="https://it.wikipedia.org/wiki/Pierino_%28personaggio%29">{{.Name}}</a></h1>
       {{else if eq .Slug "hitler"}}
-      <h1 id=categoryname>Barzellette su <a href="https://it.wikipedia.org/wiki/Adolf_Hitler" class=nav>{{.Name}}</a></h1>
+      <h1 id=categoryname>Barzellette su <a href="https://it.wikipedia.org/wiki/Adolf_Hitler">{{.Name}}</a></h1>
       {{else if eq .Slug "yiddish"}}
-      <h1 id=categoryname>Barzellette <a href="https://it.wikipedia.org/wiki/Storiella_ebraica" class=nav>{{.Name}}</a></h1>
+      <h1 id=categoryname>Barzellette <a href="https://it.wikipedia.org/wiki/Storiella_ebraica">{{.Name}}</a></h1>
       {{else if eq .Slug "umorismo-nero"}}
-      <h1 id=categoryname><a href="https://it.wikipedia.org/wiki/Umorismo_nero" class=nav>{{.Name}}</a></h1>
+      <h1 id=categoryname><a href="https://it.wikipedia.org/wiki/Umorismo_nero">{{.Name}}</a></h1>
       {{else}}
       <h1 id=categoryname>Barzellette {{.Name}}</h1>
       {{end}}
@@ -33,7 +33,7 @@
         <p>{{$e.Joke}}</p>
       </article>
 
-      {{if eq $i 0}}
+      {{if eq $i 1}}
       <aside id="ads">
         <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
         <!-- barzedette inline responsive -->
@@ -50,8 +50,8 @@
       {{end}}
 
       <footer>
-        <a href="/" rel=home class=nav>BarzeDette :)</a>
-        <a href="#logo" class=nav id=top>↑</a>
+        <a href="/" rel=home>BarzeDette :)</a>
+        <a href="#logo" id=top>↑</a>
       </footer>
   </body>
 </html>
