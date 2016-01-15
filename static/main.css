@@ -12,6 +12,12 @@ h1 {
 h2 {
     font-size: 18px;
 }
+#header {
+    padding-bottom: 20px;
+}
+header {
+    padding-top: 10px;
+}
 #logo a {
     font-size: 45px;
 }
