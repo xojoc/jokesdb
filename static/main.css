@@ -83,3 +83,13 @@ footer ul {
 .more li {
     list-style-type: none;
 }
+
+#about {
+    margin: 30px auto;
+    font-size: 24px;
+    white-space: pre-wrap;
+    background-color: #ddd;
+    border-radius: 20px;
+    padding: 10px;
+    max-width: 600px;
+}
