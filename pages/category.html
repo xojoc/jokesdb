@@ -16,9 +16,7 @@
       
       {{range $i, $e := .Jokes}}
       <article class=joke>
-        <header>
-          <a rel=bookmark href="{{$e.AbsUrl}}" title="{{$e.Title}}">{{$e.JokeID}}</a>
-        </header>
+        {{/* <header><a rel=bookmark href="{{$e.AbsUrl}}" title="{{$e.Title}}">{{$e.JokeID}}</a></header> */}}
         <p>{{$e.Joke}}</p>
       </article>
 
