@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset=utf-8>
+    <title>{{.Title}}</title>
+    <meta name=viewport content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/static/main.css?etag=5" type="text/css">
+    <link rel="shortcut icon" href="/static/favicon.ico" />
+  </head>
+  <body>
+    <header id="header">
+      <h1 id=logo><a href="/" rel=home>JoJokes :)</a></h1>
+    </header>
+    <main>
+      <h1>{{.Name}}</h1>
+      
+      {{range $i, $e := .Jokes}}
+      <article class=joke>
+        <header><a rel=bookmark href="{{$e.AbsUrl}}" title="{{$e.Title}}">{{$e.JokeID}}</a></header>
+        <p>{{$e.Joke}}</p>
+      </article>
+
+      {{if eq $i 100000}}
+      <aside>
+        <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-2838559583130931"
+             data-ad-slot="6280972607"
+             data-ad-format="auto"></ins>
+        <script>
+          (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+      </aside>
+      {{end}}
+
+
+      {{end}}
+      
+      <div class=more>
+        <h2>More...</h2>
+        <ul>
+          {{if eq .Slug "animal"}}
+          <li><a href="http://theoatmeal.com/tag/animals" title="Funny comics about animals">The Oatmeal</a></li>
+          <li><a href="http://www.huffingtonpost.co.uk/news/funny-animals/">The Huffington post</a></li>
+          <li><a href="https://www.reddit.com/r/FunnyAnimals/">/r/FunnyAnimals</a></li>
+          {{else if eq .Slug "black-humor"}}
+          <li><a href="http://explosm.net/">Cyanide & Happiness (comic)</a></li>
+          <li><a href="http://itsthetie.com/adventures-of-god/">Adventures of god (comic)</a></li>
+          {{else if eq .Slug "blonde"}}
+          <li><a href="http://blondie.com/todays_strip/">Blondie (comic)</a></li>
+          {{else if eq .Slug "chuck-norris"}}
+          <li><a href="https://en.wikipedia.org/wiki/Chuck_Norris_facts">Wikipedia: Chuck Norris facts</a></li>
+          {{else if eq .Slug "dirty"}}
+          <li><a href="http://www.collegehumor.com/">College Humor</a></li>
+          <li><a href="https://en.wikipedia.org/wiki/Off-color_humor">Wikipeida: Off-color humor</a></li>
+          {{else if eq .Slug "family"}}
+          <li><a href="http://www.lunarbaboon.com/">Lunar Baboon (comic)</a></li>
+          <li><a href="http://familycircus.com/">The Family Circus (comic)</a></li>
+          {{else if eq .Slug "funny"}}
+          <li><a href="http://wumo.com/truthfacts">Truth facts</a></li>
+          <li><a href="http://www.boredpanda.com/category/funny/">Bored panda</a></li>
+          <li><a href="https://www.reddit.com/r/Funny">reddit.com/r/funny</a></li>
+          <li><a href="http://9gag.com/">9GAG</a></li>
+          <li><a href="http://www.break.com/">BREAK</a></li>
+          <li><a href="http://www.funnyordie.com">Funny or die</a></li>
+          {{else if eq .Slug "lawyer"}}
+          <li><a href="http://www.lawsuit.no/">Stupid lawsuits</a></li>
+          {{else if eq .Slug "little-johnny"}}
+          <li><a href="http://littlejohnnythemovie.com/">Little Johnny the movie</a></li>
+          {{else if eq .Slug "marriage"}}
+          <li><a href="http://tapastic.com/episode/87707">Relationship things (comic strip)</a></li>
+          {{else if eq .Slug "men"}}
+          {{else if eq .Slug "programming"}}
+          <li><a href="https://xkcd.com/">xkcd (comic)</a></li>
+          <li><a href="https://www.gnu.org/fun/humor.en.html">Laugh along with GNU</a></li>
+          <li><a href="http://pu.inf.uni-tuebingen.de/users/klaeren/epigrams.html">Epigrams on Programming</a></li>
+          <li><a href="http://codesqueeze.com/the-ultimate-top-25-chuck-norris-the-programmer-jokes/">Chuck Norris "The programmer"</a></li>
+          <li><a href="http://www.rinkworks.com/stupid/cs_programming.shtml">Computer stupidities</a></li>
+          <li><a href="https://www.destroyallsoftware.com/talks/wat">WAT (video)</a></li>
+          <li><a href="http://thedailywtf.com/">The daily wtf (blog)</a></li>
+          {{else if eq .Slug "school"}}
+          {{else if eq .Slug "women"}}
+          {{else if eq .Slug "work"}}
+          {{else if eq .Slug "yiddish"}}
+          <li><a href="https://en.wikipedia.org/wiki/Jewish_humour">Wikipedia: Jewish humor</a></li>
+          {{else if eq .Slug "yo-mama"}}
+          <li><a href="https://en.wikipedia.org/wiki/Maternal_insult">Wikipedia: Maternal insult</a></li>
+          {{end}}
+        </ul>
+      </div>
+      
+    </main>
+
+    <footer>
+      <a href="#logo" id=top title="Go to top">↑</a>
+    </footer>
+  </body>
+</html>
