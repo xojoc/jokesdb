@@ -12,7 +12,7 @@
       <h1 id=logo><a href="/" rel=home>JoJokes :)</a></h1>
     </header>
     <main>
-      <h1>{{.Name}} jokes</h1>
+      <h1>{{.Name}}</h1>
       
       {{range $i, $e := .Jokes}}
       <article class=joke>
@@ -36,11 +36,6 @@
 
 
       {{end}}
-
-      <script id='fb1d8cp'>
-        (function(i){var f,s=document.getElementById(i);f=document.createElement('iframe');f.src='//button.flattr.com/view/?fid=423zqr&button=compact&url='+encodeURIComponent(document.URL);f.title='Flattr';f.height=20;f.width=110;f.style.borderWidth=0;s.parentNode.insertBefore(f,s);})('fb1d8cp');
-      </script>
-
       
       <div class=more>
         <h2>More...</h2>
@@ -98,7 +93,6 @@
     </main>
 
     <footer>
-      <a href="/" rel=home>JoJokes :)</a>
       <a href="#logo" id=top title="Go to top">↑</a>
     </footer>
   </body>
