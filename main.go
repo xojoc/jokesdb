@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/xojoc/web"
-	"gopkg.in/gorp.v1"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -201,7 +200,7 @@ func categoryHandler(w http.ResponseWriter, r *http.Request) *web.NetError {
 	if err != nil {
 		return &web.NetError{404, err.Error()}
 	}
-	c.Jokes, err = GetJokes(c.CategoryID, false, 3)
+	c.Jokes, err = GetJokes(c.CategoryID, false, 0)
 	if err != nil {
 		return &web.NetError{500, err.Error()}
 	}
