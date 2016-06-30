@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/go-gorp/gorp"
 	"github.com/xojoc/web"
 
 	_ "github.com/mattn/go-sqlite3"
