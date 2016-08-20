@@ -52,6 +52,9 @@ a {
 #categories ul {
     list-style-type: none;
 }
+#categories li {
+	margin-bottom: 4px;
+}
 .joke {
     padding-top: 10px;
     padding-bottom: 10px;
